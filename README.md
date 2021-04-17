@@ -11,6 +11,6 @@ $ git clone https://github.com/kiyalab-tmu/2021-sem1-rinko.git
 $ git pull
 $ git add ./<user_name>/chapter##/qXX.py
 $ git commit -m 'your message'
-$ git push origin master
+$ git push origin main
 ```
 
