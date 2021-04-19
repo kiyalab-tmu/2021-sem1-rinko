@@ -1,1 +1,1 @@
-$ git clone https://github.com/kiyalab-tmu/2021-sem1-rinko.git
+hello
