@@ -1,3 +1,7 @@
+"""
+1~100までのFizzBuzz
+"""
+
 for i in range(1, 101):
     ans = ""
     if i % 3 == 0:
