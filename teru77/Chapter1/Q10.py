@@ -1,6 +1,6 @@
 import numpy as np
 
-def Compare_two_array():
+def Compare():
     arrA = np.random.randint(0,2,2)
     print('First Array=',arrA)
     arrB = np.random.randint(0,2,2)
@@ -8,5 +8,5 @@ def Compare_two_array():
     print(np.all(arrA==arrB))
     
 if __name__ == '__main__':
-    Compare_two_array()
+    Compare()
     
