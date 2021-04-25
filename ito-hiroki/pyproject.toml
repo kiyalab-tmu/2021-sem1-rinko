@@ -8,6 +8,7 @@ authors = ["Ito Hiroki <hiroki.i0307@gmail.com>"]
 python = "^3.8"
 black = "^20.8b1"
 flake8 = "^3.9.1"
+numpy = "^1.20.2"
 
 [tool.poetry.dev-dependencies]
 
