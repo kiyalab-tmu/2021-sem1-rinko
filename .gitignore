@@ -1,6 +1,7 @@
 # Misc
 .DS_Store
 .vs
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
