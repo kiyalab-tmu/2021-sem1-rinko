@@ -1,3 +1,8 @@
+"""
+参考
+https://towardsdatascience.com/softmax-regression-in-python-multi-class-classification-3cb560d90cb2
+"""
+
 from keras.datasets import fashion_mnist
 import numpy as np
 import random
