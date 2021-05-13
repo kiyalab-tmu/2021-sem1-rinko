@@ -52,7 +52,7 @@ def data_iter(x, y, batch_size=256):
         yield x[batch_index], y[batch_index]
 
 # train
-def fit(x, y, c=10, lr=0.1, epochs=100):
+def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
     m, n = x.shape
     w = np.random.normal(loc=0, scale=0.01, size=(n,c))
     b = np.zeros_like(c)
