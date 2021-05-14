@@ -12,6 +12,11 @@ noise = np.random.normal(0,0.01,N)
 y = np.dot(X , w) + b + noise
 y = y.reshape((-1,1))
 
+# Plot features
+plt.plot(X[0],X[1])
+plt.savefig('./q1_feature.png')
+plt.close()
+
 class Dataset(torch.utils.data.Dataset):
     def __init__(self):
         super().__init__() #data.Datasetを継承
@@ -82,5 +87,5 @@ plt.plot(range(1, epochs+1),losses)
 plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
-plt.savefig('./q1.png')
+plt.savefig('./q1_loss.png')
 plt.close()
