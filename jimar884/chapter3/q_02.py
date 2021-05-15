@@ -7,22 +7,7 @@ from keras.datasets import fashion_mnist
 import numpy as np
 import random
 import torch
-
-# load data
-(train_x, train_y), (test_x, test_y) = fashion_mnist.load_data()
-# check shape and type
-print(train_x.shape, test_x.shape)
-print(len(train_y))
-print(type(train_x))
-
-# reshape
-train_x  = train_x / 255.0
-test_x = test_x / 255.0
-train_x = train_x.reshape(60000, 28*28)
-test_x = test_x.reshape(10000, 28*28)
-# check shape and type
-print(train_x.shape, test_x.shape)
-print(type(train_x))
+import matplotlib.pyplot as plt
 
 # One Hot Encoding
 def one_hot(y, c=10):
@@ -51,6 +36,16 @@ def data_iter(x, y, batch_size=256):
         batch_index = torch.tensor(index[i:min(i+batch_size, num)])
         yield x[batch_index], y[batch_index]
 
+# prediction
+def predict(x, w, b):
+    z = x@w + b
+    y_hat = softmax(z)
+    return np.argmax(y_hat,axis=1)
+
+# get accuracy
+def accuracy(y, y_hat):
+    return np.sum(y==y_hat)/len(y)
+
 # train
 def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
     m, n = x.shape
@@ -58,6 +53,7 @@ def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
     b = np.zeros_like(c)
 
     losses = []
+    accuracies = []
 
     for epoch in range(epochs):
         for x_batch, y_batch in data_iter(x, y):
@@ -68,26 +64,47 @@ def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
             b_grad = (1/m)*np.sum(y_hat - y_hot)
             w = w - lr*w_grad
             b = b - lr*b_grad
-            loss = cross_entropy(y_batch, y_hat)
-            losses.append(loss)
+        loss = cross_entropy(y_batch, y_hat)
+        losses.append(loss)
+        pred = predict(x, w, b)
+        accuracies.append(accuracy(y, pred))
         if epoch%10==0:
             print('epoch {epoch} -> loss = {loss}'.format(epoch=epoch,loss=loss))
     
-    return w, b, losses
+    return w, b, losses, accuracies
 
-w, b, l = fit(train_x, train_y)
 
-# prediction
-def predict(x, w, b):
-    z = x@w + b
-    y_hat = softmax(z)
-    return np.argmax(y_hat,axis=1)
+def main():
+    # load data
+    # load data
+    (train_x, train_y), (test_x, test_y) = fashion_mnist.load_data()
+    # check shape and type
+    print(train_x.shape, test_x.shape)
+    print(len(train_y))
+    print(type(train_x))
 
-def accuracy(y, y_hat):
-    return np.sum(y==y_hat)/len(y)
+    # reshape
+    train_x  = train_x / 255.0
+    test_x = test_x / 255.0
+    train_x = train_x.reshape(60000, 28*28)
+    test_x = test_x.reshape(10000, 28*28)
+    # check shape and type
+    print(train_x.shape, test_x.shape)
+    print(type(train_x))
+    
+    w, b, l, a = fit(train_x, train_y)
 
-train_pred = predict(train_x, w, b)
-print(accuracy(train_y, train_pred))
-test_pred = predict(test_x, w, b)
-print(accuracy(test_y, test_pred))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.plot(l)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.plot(a)
+    plt.show()
 
+    train_pred = predict(train_x, w, b)
+    print(accuracy(train_y, train_pred))
+    test_pred = predict(test_x, w, b)
+    print(accuracy(test_y, test_pred))
+
+if __name__=='__main__':
+    main()
