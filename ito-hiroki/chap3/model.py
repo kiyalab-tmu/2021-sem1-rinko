@@ -4,9 +4,9 @@ import numpy as np
 class LinearRegression:
     def __init__(self, input_dim=2):
         np.random.seed(19980307)
-        self.weights = np.random.normal(loc=0.0, scale=0.01, size=2)
+        self.weights = np.random.normal(loc=0.0, scale=0.01, size=input_dim)
         self.bias = 0
-        self.lr = 0.001
+        self.lr = 0.01
 
     def predict(self, X):
         return np.dot(X, self.weights) + self.bias
