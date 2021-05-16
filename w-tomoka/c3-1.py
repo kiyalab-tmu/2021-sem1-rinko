@@ -23,27 +23,37 @@ def make_dataset(N=1000, w=np.array([2, -3.4]), b=4.2):
 
 X, y = make_dataset()
 
+# サンプルデータをTensorにする
+X = torch.from_numpy(X).float()
+y = torch.from_numpy(y).float()
 
-def linear_regression(dimension, iteration, lr, x, y):
+
+batch_size = 500
+data_size = 1000
+
+def linear_regression(dimension, epoch, lr, x, y):
     net = torch.nn.Linear(in_features=dimension, out_features=1)  # ネットワークに線形結合モデルを設定
-    optimizer = torch.optim.SGD(net.parameters(), lr=lr)                      # 最適化にSGDを設定
-    E = torch.nn.MSELoss()                                         # 損失関数にMSEを設定
-    #w = np.random.normal(loc = 0, scale = 0.01, size = 2)
-    #w = torch.from_numpy(w).float()
-    #w = random.normalvariate(0, 0.01)
-    net.weight.data.fill_(0.01)
+    optimizer = torch.optim.SGD(net.parameters(), lr=lr)          # 最適化にSGDを設定
+    E = torch.nn.MSELoss()                                        # 損失関数にMSEを設定
+
+    w = random.normalvariate(0, 0.01)
+    net.weight.data.fill_(w)
     net.bias.data.fill_(0)
  
 
     # 学習ループ
     losses = []
-    for i in range(iteration):
-        optimizer.zero_grad()                                                 # 勾配情報を0に初期化
-        y_pred = net(x)                                                       # 予測
-        loss = E(y_pred.reshape(y.shape), y)                                  # 損失を計算(shapeを揃える)
-        loss.backward()                                                       # 勾配の計算
-        optimizer.step()                                                      # 勾配の更新
-        losses.append(loss.item())                                            # 損失値の蓄積
+    for i in range(epoch):
+        batch_choice = np.random.choice(1000, batch_size)
+        x_batch = x[batch_choice]
+        y_batch = y[batch_choice]
+
+        optimizer.zero_grad()                                       # 勾配情報を0に初期化
+        y_pred = net(x_batch)                                       # 予測
+        loss = E(y_pred.reshape(y_batch.shape), y_batch)            # 損失を計算(shapeを揃える)
+        loss.backward()                                             # 勾配の計算
+        optimizer.step()                                            # 勾配の更新
+        losses.append(loss.item())                                  # 損失値の蓄積
         print(list(net.parameters()))
         print('loss', loss.item())
  
@@ -79,22 +89,22 @@ def plot(x, y, x_new, y_pred, losses):
     # 軸のラベルを設定する。
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
-    ax2.set_xlabel('Iteration')
-    ax2.set_ylabel('E')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Loss')
  
     # スケール設定
     ax1.set_xlim(0, 10)
     ax1.set_ylim(0, 30)
-    ax2.set_xlim(0, 1000)
-    ax2.set_ylim(0.1, 100)
-    ax2.set_yscale('log')
+    ax2.set_xlim(-100, 4000)
+    ax2.set_ylim(-0.3, 10)
+    #ax2.set_yscale('log')
  
     # データプロット
     ax1.scatter(x, y, label='dataset')
     ax1.plot(x_new, y_pred, color='red', label='PyTorch result')
     ax2.plot(np.arange(0, len(losses), 1), losses)
-    ax2.text(600, 30, 'Loss=' + str(round(losses[len(losses)-1], 2)), fontsize=16)
-    ax2.text(600, 50, 'Iteration=' + str(round(len(losses), 1)), fontsize=16)
+    #ax2.text(1000, 8, 'Loss=' + str(round(losses[len(losses)-1], 5)), fontsize=16)
+    #ax2.text(1000, 9, 'Epoch=' + str(round(len(losses), 1)), fontsize=16)
  
     # グラフを表示する。
     ax1.legend()
@@ -103,9 +113,5 @@ def plot(x, y, x_new, y_pred, losses):
     plt.close()
     # -------------------------------------------------------------------
  
-# サンプルデータ
-X = torch.from_numpy(X).float()
-y = torch.from_numpy(y).float()
-
 # 線形回帰を実行
-net, losses = linear_regression(dimension=2, iteration=4000, lr=0.01, x=X, y=y)
+net, losses = linear_regression(dimension=2, epoch=4000, lr=0.01, x=X, y=y)
