@@ -46,7 +46,7 @@ model = Net(2,1)
 
 #define loss function
 def squared_loss_function(pred_y,y):
-    return (y.reshape((pred_y.shape)) - pred_y)**2 /2
+    return torch.sum((y.reshape((pred_y.shape)) - pred_y)**2)/ 2
 
 #define stochastic gradient descent
 optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
@@ -57,22 +57,22 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     print("epoch : {}".format(epoch))
     model.train()
     total_loss =0
-    cnt = 0
     for i, data in enumerate(dataloader, 0):
+        
         # get the inputs; data is a list of [X, y]
-        X, y = data
-        cnt += 1
+        X, y = data      
+        
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
         pred_y = model(X)
         loss=squared_loss_function(pred_y,y)
-        loss.sum().backward()
+        loss.backward()
         optimizer.step()
-        total_loss += loss.sum().detach().numpy().copy() #tensor -> numpy
+        total_loss += loss.item()
         
-    losses.append(total_loss/cnt) #epochごとの平均lossを格納
+    losses.append(total_loss/i)#epochごとの平均lossを格納
 
 #print learnt parameters
 print("-----true parameters-----")
