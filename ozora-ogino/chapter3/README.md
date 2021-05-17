@@ -7,9 +7,6 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/17wJ7IPJO93maX3LWLjIkj66cPVsqcRNa?usp=sharing)
 
 
+## Question3 & Question4
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1E0lJCA9oYe6QeXqLbgyyhyl8h8A8mq8F?usp=sharing)
 
-## Question3
-
-
-
-## Question4
