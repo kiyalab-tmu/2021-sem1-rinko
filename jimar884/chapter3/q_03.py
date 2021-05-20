@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import torchvision.transforms as transforms
@@ -34,6 +36,23 @@ def whichclass(pred_y):
     return ans
 
 
+
+class Net(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super().__init__()
+        self.linear1 = nn.Linear(input_size, hidden_size)
+        self.linear2 = nn.Linear(hidden_size, output_size)
+        nn.init.normal_(self.linear1.weight, 0.0, 0.01)
+        nn.init.normal_(self.linear2.weight, 0.0, 0.01)
+
+    def forward(self, x):
+        x = self.linear1(x)
+        x = F.relu(x)
+        x = self.linear2(x)
+
+        return x
+
+
 def main():
     # donwload data & make DataLoader
     data_path = 'jimar884/chapter3/data'
@@ -45,15 +64,12 @@ def main():
     # initialize the params
     num, heignt, width = train_dataset.data.shape
     num_hiddenunit = 256
-
-    w_in2hid = torch.normal(0, 0.01, size=(heignt*width, num_hiddenunit), requires_grad=True)
-    b_in2hid = torch.zeros(num_hiddenunit, requires_grad=True)
-    w_hid2out = torch.normal(0, 0.01, size=(num_hiddenunit, num_class), requires_grad=True)
-    b_hid2out = torch.zeros(num_class, requires_grad=True)
+    num_class = 10
 
     # train
+    net = Net(input_size=heignt*width, hidden_size=num_hiddenunit, output_size=10)
     num_epoch = 10
-    optimizer = optim.SGD([w_in2hid, b_in2hid, w_hid2out, b_hid2out], lr=0.01)
+    optimizer = optim.SGD(net.parameters(), lr=0.03)
     losses = np.zeros(num_epoch)
 
     for epoch in range(num_epoch):
@@ -61,11 +77,10 @@ def main():
             images = images.view(-1, heignt*width)
             optimizer.zero_grad()
             with torch.set_grad_enabled(True):
-                hiddenlayers = relu(torch.matmul(images, w_in2hid) + b_in2hid)
-                outputs = torch.matmul(hiddenlayers, w_hid2out) + b_hid2out
+                outputs = net(images)
                 pred_labels = softmax(outputs)
                 loss = cross_entropy(pred_labels, labels)
-                losses[epoch] += loss / batch_size
+                losses[epoch] += loss / len(labels)
             loss.backward()
             optimizer.step()
         print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
@@ -75,8 +90,7 @@ def main():
     count = 0.0
     for i, (images, labels) in enumerate(test_loader):
         images = images.view(-1, heignt*width)
-        hiddenlayers = torch.matmul(images, w_in2hid) + b_in2hid
-        outputs = torch.matmul(hiddenlayers, w_hid2out) + b_hid2out
+        outputs = net(images)
         pred_labels = softmax(outputs)
         pred_labels = whichclass(pred_labels)
         for j in range(len(pred_labels)):
@@ -92,3 +106,4 @@ def main():
 
 if __name__=='__main__':
     main()
+

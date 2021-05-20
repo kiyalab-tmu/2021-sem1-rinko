@@ -74,54 +74,45 @@ def main():
     num_class = 10
 
     # train
-    lrs = [i*0.01 for i in range(1, 10)]
-    Loss = []
-    Acc = []
-    for lr in lrs:
-        print('learning rate is ', lr)
+    net = Net(input_size=heignt*width, hidden_size=num_hiddenunit, output_size=10)
+    num_epoch = 100
+    optimizer = optim.SGD(net.parameters(), lr=0.03)
+    losses = []
+    accuracies = []
 
-        net = Net(input_size=heignt*width, hidden_size=num_hiddenunit, output_size=10)
-        num_epoch = 100
-        optimizer = optim.SGD(net.parameters(), lr=lr)
-        losses = np.zeros(num_epoch)
-
-        for epoch in range(num_epoch):
-            for i, (images, labels) in enumerate(train_loader):
-                images = images.view(-1, heignt*width)
-                optimizer.zero_grad()
-                with torch.set_grad_enabled(True):
-                    outputs = net(images)
-                    pred_labels = softmax(outputs)
-                    loss = cross_entropy(pred_labels, labels)
-                    losses[epoch] += loss / len(labels)
-                loss.backward()
-                optimizer.step()
-            if early_stopping(losses, patience=3):
-                break
-            print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
-
-        # get accuracy
-        correct = 0.0
-        count = 0.0
-        for i, (images, labels) in enumerate(test_loader):
+    for epoch in range(num_epoch):
+        losses.append(0)
+        for i, (images, labels) in enumerate(train_loader):
             images = images.view(-1, heignt*width)
-            outputs = net(images)
-            pred_labels = softmax(outputs)
-            pred_labels = whichclass(pred_labels)
-            for j in range(len(pred_labels)):
-                if pred_labels[j].int() == labels[j]:
-                    correct += 1
-                count += 1
-        acc = correct / count
-        print("accuracy:%.4f" % (acc))
-        Loss.append(losses)
-        Acc.append(acc)
+            optimizer.zero_grad()
+            with torch.set_grad_enabled(True):
+                outputs = net(images)
+                pred_labels = softmax(outputs)
+                loss = cross_entropy(pred_labels, labels)
+                losses[epoch] += loss / len(labels)
+            loss.backward()
+            optimizer.step()
+        if early_stopping(losses, patience=3):
+            break
+        print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
+
+    # get accuracy
+    correct = 0.0
+    count = 0.0
+    for i, (images, labels) in enumerate(test_loader):
+        images = images.view(-1, heignt*width)
+        outputs = net(images)
+        pred_labels = softmax(outputs)
+        pred_labels = whichclass(pred_labels)
+        for j in range(len(pred_labels)):
+            if pred_labels[j].int() == labels[j]:
+                correct += 1
+            count += 1
+    acc = correct / count
+    print("accuracy:%.4f" % (acc))
     
     # show loss
-    for loss in Loss:
-        plt.plot(loss)
-        plt.show()
-    plt.plot(Acc)
+    plt.plot(losses)
     plt.show()
 
 if __name__=='__main__':
