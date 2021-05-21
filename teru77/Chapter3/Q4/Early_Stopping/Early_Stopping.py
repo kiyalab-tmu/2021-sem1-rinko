@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,21 +24,55 @@ def softmax_operation(x):
 
 #Define a model
 class Net(nn.Module):
-    def __init__(self,input_features,output_features):
+    def __init__(self,input_features,hidden_size,output_features):
         super().__init__() #nn.Moduleを継承
-        self.linear = nn.Linear(input_features,output_features)
-        nn.init.normal_(self.linear.weight, mean=0,std=0.01) #重みを初期化
+        self.linear1 = nn.Linear(input_features,hidden_size)
+        self.linear2 = nn.Linear(hidden_size,output_features)
+        nn.init.normal_(self.linear1.weight, mean=0,std=0.01) #重みを初期化
+        nn.init.normal_(self.linear2.weight, mean=0,std=0.01) #重みを初期化
         
     def forward(self,input):
-        output = softmax_operation(self.linear(input))
+        x = F.relu(self.linear1(input))
+        x = self.linear2(x)
+        output = softmax_operation(x)
         return output
 
-model = Net(28*28,10)
+model = Net(28*28,256,10)
 
 #Define a cross-entropy loss
 def cross_entropy_error(pred_y, y):
     return -1 * torch.mean(torch.sum( y * torch.log(pred_y),1))
 
+#define a Early Stopping
+class EarlyStopping:
+    def __init__(self, patience=1, path='./model.pth'):
+           
+        self.patience = patience    #1回更新がなければストップ
+        self.counter = 0            
+        self.best_score = None      
+        self.early_stop = False    
+        self.val_loss_min = np.Inf   #初期状態を無限大
+        self.path = path             
+
+    def __call__(self, val_loss, model):
+        score = -val_loss
+        if self.best_score is None: 
+            self.best_score = score   
+            self.checkpoint(val_loss, model)  
+        elif score < self.best_score:  
+            self.counter += 1   
+            if self.counter >= self.patience: 
+                self.early_stop = True
+        else:  
+            self.best_score = score  
+            self.checkpoint(val_loss, model)  
+            self.counter = 0  
+
+    def checkpoint(self, val_loss, model):
+        torch.save(model.state_dict(), self.path)  
+        self.val_loss_min = val_loss  
+        
+early_stopping = EarlyStopping()
 
 #Define a stochastic gradient descent
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)   
@@ -87,13 +122,19 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     if best_train_loss is None  or best_train_loss > train_loss:
         best_train_loss = train_loss
         best_train_acc =  train_acc
+    
+    #EarlyStoppingの判定
+    early_stopping(train_loss,model)
+    if early_stopping.early_stop:
+        print('Early Stopping')
+        last_epoch = epoch + 1
+        break
 
-torch.save(model.state_dict(), './model.pth')        
-#test
-model = Net(28*28,10)
+
+model = Net(28*28,256,10)
 model.load_state_dict(torch.load('./model.pth'))    
-model.eval()
-
+model.eval()   
+#test
 total_loss =0
 correct = 0
 total = 0
@@ -111,25 +152,23 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
     test_loss = total_loss/i
     test_acc = float(correct / total)
- 
-
 
 # Plot result(loss)
-plt.plot(range(1, epochs+1),train_losses,label="train")
+plt.plot(range(1, last_epoch+1),train_losses,label="train")
 plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q2_loss.png')
+plt.savefig('./q4_EarlyStopping_loss.png')
 plt.close()
 
 # Plot result(acc)
-plt.plot(range(1, epochs+1),train_accuracies,label="train")
+plt.plot(range(1, last_epoch+1),train_accuracies,label="train")
 plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q2_acc.png')
+plt.savefig('./q4_EarlyStopping_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")
