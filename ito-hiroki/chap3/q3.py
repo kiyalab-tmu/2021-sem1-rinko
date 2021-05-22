@@ -1,9 +1,14 @@
-import numpy as np
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm, trange
+
+
+def weights_init(m):
+    if isinstance(m, nn.Linear):
+        nn.init.normal_(m.weight.data)
+        nn.init.normal_(m.bias.data)
 
 
 BATCH_SIZE = 256
@@ -22,12 +27,15 @@ train_ds = datasets.FashionMNIST(
 )
 train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
+
 model = nn.Sequential(
     nn.Flatten(),
     nn.Linear(784, 256),
     nn.ReLU(),
     nn.Linear(256, 10),
 )
+model.apply(weights_init)
+model = model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
