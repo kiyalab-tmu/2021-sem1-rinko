@@ -27,6 +27,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from keras.layers import Dense, Input, Dropout, Flatten
 from keras.models import Model
+from keras import regularizers
 
 gpu_id = 0
 print(tf.__version__)
@@ -93,11 +94,11 @@ test_one_hot_vector = createOneHotVector(test_labels)
 """
 model = keras.Sequential([
     Flatten(input_shape=(28, 28)),
-    Dense(256, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None)),
+    Dense(256, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None),kernel_regularizer=regularizers.l2(0.01)),
     # Dropout(0.2),
-    Dense(128, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None)),
+    # Dense(128, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None)),
     # Dropout(0.2),
-    Dense(64, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None)),
+    # Dense(64, activation='relu', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None)),
     # Dropout(0.2),
     Dense(10, activation='softmax', kernel_initializer=keras.initializers.RandomNormal(mean=0.0, stddev=0.01, seed=None))
 ])
@@ -125,6 +126,7 @@ print('最終的な入力shape:', train_data.shape)
 学習
 """
 checkpoint = keras.callbacks.ModelCheckpoint('model.h5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='min')
 history = model.fit(x=train_data, y=train_one_hot_vector, batch_size=256, epochs=100, verbose=2, validation_split=0.2, shuffle=True, callbacks=[checkpoint])
 
 
