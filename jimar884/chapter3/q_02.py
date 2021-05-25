@@ -47,7 +47,7 @@ def accuracy(y, y_hat):
     return np.sum(y==y_hat)/len(y)
 
 # train
-def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
+def fit(x, y, c=10, lr=0.03, batch_size=256, epochs=300):
     m, n = x.shape
     w = np.random.normal(loc=0, scale=0.01, size=(n,c))
     b = np.zeros_like(c)
@@ -64,12 +64,12 @@ def fit(x, y, c=10, lr=0.1, batch_size=256, epochs=100):
             b_grad = (1/m)*np.sum(y_hat - y_hot)
             w = w - lr*w_grad
             b = b - lr*b_grad
-        loss = cross_entropy(y_batch, y_hat)
+            loss = cross_entropy(y_batch, y_hat)
         losses.append(loss)
         pred = predict(x, w, b)
         accuracies.append(accuracy(y, pred))
         if epoch%10==0:
-            print('epoch {epoch} -> loss = {loss}'.format(epoch=epoch,loss=loss))
+            print('epoch {epoch} -> loss = {loss}'.format(epoch=epoch,loss=losses[-1]))
     
     return w, b, losses, accuracies
 

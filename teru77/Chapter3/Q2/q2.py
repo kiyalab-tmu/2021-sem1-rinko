@@ -49,8 +49,6 @@ test_losses = []
 test_accuracies = []
 best_train_loss = None
 best_train_acc = None
-best_test_loss = None
-best_test_acc = None
 for epoch in range(epochs):  # loop over the dataset multiple times
     print("-"*30)
     print("epoch : {}".format(epoch))
@@ -89,35 +87,35 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     if best_train_loss is None  or best_train_loss > train_loss:
         best_train_loss = train_loss
         best_train_acc =  train_acc
-        
-    #test
-    total_loss =0
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for i,data in enumerate(test_dataloader,0):
-            images, labels = data
-            images = images.reshape(-1,28*28)
-            pred_y = model(images)
-            _, predicted = torch.max(pred_y.data, 1)
-            #loss
-            loss=cross_entropy_error(pred_y,torch.nn.functional.one_hot(labels, num_classes=10)) #labels -> ワンホットベクトル化)
-            total_loss += loss.item()
-            #acc
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-        test_loss = total_loss/i
-        test_losses.append(test_loss)
-        test_acc = float(correct / total)
-        test_accuracies.append(test_acc)
-        
-    if best_test_loss is None  or best_test_loss > test_loss:
-        best_test_loss = test_loss
-        best_test_acc =  test_acc
+
+torch.save(model.state_dict(), './model.pth')        
+#test
+model = Net(28*28,10)
+model.load_state_dict(torch.load('./model.pth'))    
+model.eval()
+
+total_loss =0
+correct = 0
+total = 0
+with torch.no_grad():
+    for i,data in enumerate(test_dataloader,0):
+        images, labels = data
+        images = images.reshape(-1,28*28)
+        pred_y = model(images)
+        _, predicted = torch.max(pred_y.data, 1)
+        #loss
+        loss=cross_entropy_error(pred_y,torch.nn.functional.one_hot(labels, num_classes=10)) #labels -> ワンホットベクトル化)
+        total_loss += loss.item()
+        #acc
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+    test_loss = total_loss/i
+    test_acc = float(correct / total)
+ 
+
 
 # Plot result(loss)
 plt.plot(range(1, epochs+1),train_losses,label="train")
-plt.plot(range(1, epochs+1),test_losses,label="test")
 plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
@@ -127,7 +125,6 @@ plt.close()
 
 # Plot result(acc)
 plt.plot(range(1, epochs+1),train_accuracies,label="train")
-plt.plot(range(1, epochs+1),test_accuracies,label="test")
 plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
@@ -137,5 +134,5 @@ plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")
 print(f"best_train_acc: {best_train_acc}")
-print(f"best_test_loss: {best_test_loss}")
-print(f"best_test_acc: {best_test_acc}")
+print(f"test_loss: {test_loss}")
+print(f"test_acc: {test_acc}")
