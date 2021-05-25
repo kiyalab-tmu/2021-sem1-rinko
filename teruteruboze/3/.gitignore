@@ -1,6 +1,7 @@
 *.pptx
 *.png
 *.m
-*.json
-3-1_Linear_Regression/
-3-2_Softmax_Regression*/
+.vscode/
+results/
+_dataset_/
+backup/

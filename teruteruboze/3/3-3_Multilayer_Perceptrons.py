@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     # folder creation #######################################################################
     # config file (json)
-    with open('3-2_Softmax_Regression.json') as f:
+    with open('3-3_Multilayer_Perceptrons.json') as f:
         config = json.load(f)
     # make necessary dir
     makeDir.do(config['path']['log'], config['path']['log_Fname'],
@@ -33,9 +33,12 @@ if __name__ == '__main__':
     ''')
 
     # main #################################################################################
-    dataset = makeDataset.BasicDataset(config['training']['BATCH_SIZE'])
-    model   = makeNet.Single_Layer_Network()
+    dataset = makeDataset.BasicDataset(config['training']['BATCH_SIZE'],config['path']['dataset'])
+    dataset.add_class_label(config['dataset']['classes'])
+    model   = makeNet.Multilayer_Perceptrons()
+    model.weight_bias_init
     device  = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model   = model.to(device)
 
     loss_fn   = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=config['training']['lr'])
@@ -50,12 +53,14 @@ if __name__ == '__main__':
         train_loss.append(loss.data.cpu().numpy())
         train_acc.append(acc)
 
-    test.do(logger, dataset.test, model, loss_fn, device)
     torch.save(model.state_dict(), config['path']['default'] + config['path']['ckpt'] + 'model.ckpt')
     print('PyTorch Model State Successfully saved to ' + config['path']['default'] + config['path']['ckpt'] + 'model.ckpt')
+    # get y_pred and y_true for confusion matrix
+    y_pred, y_true = test.do(logger, dataset.test, model, loss_fn, device)
 
     # save for analysis ####################################################################
     # save Figs
+    makeFigure.Fig_confusion_matrix(y_pred, y_true, dataset.labels, config['path']['fig'], config['path']['default'])
     makeFigure.save(train_loss, 'train loss', 'epoch', 'loss', config['path']['fig'], config['path']['default'])
     makeFigure.save(train_acc, 'train acc', 'epoch', 'acc', config['path']['fig'], config['path']['default'])
     # save CSV
