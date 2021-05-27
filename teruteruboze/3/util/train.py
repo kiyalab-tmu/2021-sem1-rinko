@@ -3,6 +3,7 @@ import torch
 def do(logger, dataloader, model, loss_fn, optimizer, device):
 
     size = len(dataloader.dataset)
+    model.train()
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(device), y.to(device)
 

@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,24 +24,36 @@ def softmax_operation(x):
 
 #Define a model
 class Net(nn.Module):
-    def __init__(self,input_features,output_features):
+    def __init__(self,input_features,hidden_size,output_features):
         super().__init__() #nn.Moduleを継承
-        self.linear = nn.Linear(input_features,output_features)
-        nn.init.normal_(self.linear.weight, mean=0,std=0.01) #重みを初期化
+        self.linear1 = nn.Linear(input_features,hidden_size)
+        self.linear2 = nn.Linear(hidden_size,output_features)
+        nn.init.normal_(self.linear1.weight, mean=0,std=0.01) #重みを初期化
+        nn.init.normal_(self.linear2.weight, mean=0,std=0.01) #重みを初期化
+        self.layer_num = 2
         
     def forward(self,input):
-        output = softmax_operation(self.linear(input))
+        x = F.relu(self.linear1(input))
+        x = self.linear2(x)
+        output = softmax_operation(x)
         return output
 
-model = Net(28*28,10)
-
+model = Net(28*28,256,10)
 #Define a cross-entropy loss
 def cross_entropy_error(pred_y, y):
     return -1 * torch.mean(torch.sum( y * torch.log(pred_y),1))
 
+#define a weight decay
+def Weight_decay(Yourmodel):
+    weight_decay_lambda = 0.001
+    weight_decay = 0
+    for i in range(1,Yourmodel.layer_num + 1):
+        W = torch.sqrt(torch.sum(Yourmodel.state_dict()[f"linear{i}.weight"] ** 2))
+        weight_decay += 0.5 * weight_decay_lambda * W**2
+    return weight_decay
 
 #Define a stochastic gradient descent
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)   
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)   
                          
 epochs = 100
 train_losses = []
@@ -58,7 +71,6 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     total_loss =0
     correct = 0
     total = 0
-    
     for i, data in enumerate(train_dataloader, 0):
         # get the inputs; data is a list of [X, y]
         images, labels = data
@@ -71,6 +83,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
             pred_y = model(images)
             _, predicted = torch.max(pred_y.data, 1)
             loss=cross_entropy_error(pred_y,torch.nn.functional.one_hot(labels, num_classes=10)) #labels -> ワンホットベクトル化)
+            loss += Weight_decay(model)
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -86,13 +99,15 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     
     if best_train_loss is None  or best_train_loss > train_loss:
         best_train_loss = train_loss
+    if best_train_acc  is None or train_acc > best_train_acc:
         best_train_acc =  train_acc
 
-torch.save(model.state_dict(), './model.pth')        
+torch.save(model.state_dict(), './model.pth')
+  
 #test
-model = Net(28*28,10)
+model = Net(28*28,256,10)
 model.load_state_dict(torch.load('./model.pth'))    
-model.eval()
+model.eval()  
 
 total_loss =0
 correct = 0
@@ -111,16 +126,15 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
     test_loss = total_loss/i
     test_acc = float(correct / total)
- 
-
-
+       
+        
 # Plot result(loss)
 plt.plot(range(1, epochs+1),train_losses,label="train")
 plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q2_loss.png')
+plt.savefig('./q4_l2_loss.png')
 plt.close()
 
 # Plot result(acc)
@@ -129,7 +143,7 @@ plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q2_acc.png')
+plt.savefig('./q4_l2_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")

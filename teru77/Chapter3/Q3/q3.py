@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,16 +24,20 @@ def softmax_operation(x):
 
 #Define a model
 class Net(nn.Module):
-    def __init__(self,input_features,output_features):
+    def __init__(self,input_features,hidden_size,output_features):
         super().__init__() #nn.Moduleを継承
-        self.linear = nn.Linear(input_features,output_features)
-        nn.init.normal_(self.linear.weight, mean=0,std=0.01) #重みを初期化
+        self.linear1 = nn.Linear(input_features,hidden_size)
+        self.linear2 = nn.Linear(hidden_size,output_features)
+        nn.init.normal_(self.linear1.weight, mean=0,std=0.01) #重みを初期化
+        nn.init.normal_(self.linear2.weight, mean=0,std=0.01) #重みを初期化
         
     def forward(self,input):
-        output = softmax_operation(self.linear(input))
+        x = F.relu(self.linear1(input))
+        x = self.linear2(x)
+        output = softmax_operation(x)
         return output
 
-model = Net(28*28,10)
+model = Net(28*28,256,10)
 
 #Define a cross-entropy loss
 def cross_entropy_error(pred_y, y):
@@ -58,7 +63,6 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     total_loss =0
     correct = 0
     total = 0
-    
     for i, data in enumerate(train_dataloader, 0):
         # get the inputs; data is a list of [X, y]
         images, labels = data
@@ -88,11 +92,12 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         best_train_loss = train_loss
         best_train_acc =  train_acc
 
-torch.save(model.state_dict(), './model.pth')        
+torch.save(model.state_dict(), './model.pth')
+  
 #test
-model = Net(28*28,10)
+model = Net(28*28,256,10)
 model.load_state_dict(torch.load('./model.pth'))    
-model.eval()
+model.eval()  
 
 total_loss =0
 correct = 0
@@ -111,16 +116,15 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
     test_loss = total_loss/i
     test_acc = float(correct / total)
- 
-
-
+       
+        
 # Plot result(loss)
 plt.plot(range(1, epochs+1),train_losses,label="train")
 plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q2_loss.png')
+plt.savefig('./q3_loss.png')
 plt.close()
 
 # Plot result(acc)
@@ -129,7 +133,7 @@ plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q2_acc.png')
+plt.savefig('./q3_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")
