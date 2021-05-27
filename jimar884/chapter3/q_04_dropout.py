@@ -42,7 +42,7 @@ class Net_dropout(nn.Module):
         super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
         self.linear2 = nn.Linear(hidden_size, output_size)
-        self.dropout = nn.Dropout(p=0.2)
+        self.dropout = nn.Dropout(p=0.4)
         nn.init.normal_(self.linear1.weight, 0.0, 0.01)
         nn.init.normal_(self.linear2.weight, 0.0, 0.01)
 
@@ -83,7 +83,7 @@ def main():
                 outputs = net(images)
                 pred_labels = softmax(outputs)
                 loss = cross_entropy(pred_labels, labels)
-                losses[epoch] += loss / len(labels)
+                losses[epoch] += loss.item() / len(labels)
             loss.backward()
             optimizer.step()
         print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
@@ -104,6 +104,7 @@ def main():
     print("accuracy:%.4f" % (acc))
     
     # show loss
+    print(losses)
     plt.plot(losses)
     plt.show()
 

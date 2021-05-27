@@ -68,11 +68,12 @@ def main():
 
     # train
     net = Net(input_size=heignt*width, hidden_size=num_hiddenunit, output_size=10)
-    num_epoch = 10
+    num_epoch = 100
     optimizer = optim.SGD(net.parameters(), lr=0.03)
-    losses = np.zeros(num_epoch)
+    losses = []
 
     for epoch in range(num_epoch):
+        losses.append(0)
         for i, (images, labels) in enumerate(train_loader):
             images = images.view(-1, heignt*width)
             optimizer.zero_grad()
@@ -80,7 +81,7 @@ def main():
                 outputs = net(images)
                 pred_labels = softmax(outputs)
                 loss = cross_entropy(pred_labels, labels)
-                losses[epoch] += loss / len(labels)
+                losses[epoch] += loss.item() / len(labels)
             loss.backward()
             optimizer.step()
         print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
@@ -101,6 +102,7 @@ def main():
     print("accuracy:%.4f" % (acc))
     
     # show loss
+    print(losses)
     plt.plot(losses)
     plt.show()
 

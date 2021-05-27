@@ -35,7 +35,7 @@ def whichclass(pred_y):
         ans[i] = torch.argmax(pred_y[i])
     return ans
 
-def early_stopping(losses, patience=0):
+def early_stopping(losses, patience=5):
     last_loss = losses[-1]
     if len(losses) < patience:
         return False
@@ -89,10 +89,10 @@ def main():
                 outputs = net(images)
                 pred_labels = softmax(outputs)
                 loss = cross_entropy(pred_labels, labels)
-                losses[epoch] += loss / len(labels)
+                losses[epoch] += loss.item() / len(labels)
             loss.backward()
             optimizer.step()
-        if early_stopping(losses, patience=3):
+        if early_stopping(losses, patience=5):
             break
         print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
 
@@ -112,6 +112,7 @@ def main():
     print("accuracy:%.4f" % (acc))
     
     # show loss
+    print(losses)
     plt.plot(losses)
     plt.show()
 

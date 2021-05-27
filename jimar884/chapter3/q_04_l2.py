@@ -86,8 +86,8 @@ def main():
                 outputs = net(images)
                 pred_labels = softmax(outputs)
                 loss = cross_entropy(pred_labels, labels)
-                loss += l2(net=net)
-                losses[epoch] += loss / batch_size
+                loss += 0.0005 * l2(net=net)
+                losses[epoch] += loss.item() / batch_size
             loss.backward()
             optimizer.step()
         print("epoch:%3d, loss:%.4f" % (epoch, losses[epoch]))
@@ -108,6 +108,7 @@ def main():
     print("accuracy:%.4f" % (acc))
     
     # show loss
+    print(losses)
     plt.plot(losses)
     plt.show()
 
