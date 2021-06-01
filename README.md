@@ -1,6 +1,8 @@
 # 2021-sem1-rinko
 Repository for Rinko 2021 (Sem 1)
 
+[github pages](https://kiyalab-tmu.github.io/rinko2021/)
+
 ## Usage
 ```
 $ git clone https://github.com/kiyalab-tmu/2021-sem1-rinko.git
