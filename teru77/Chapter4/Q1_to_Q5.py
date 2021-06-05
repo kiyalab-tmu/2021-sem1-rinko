@@ -62,14 +62,7 @@ class Q5(nn.Module):
  
 def pooling(original_img,kernel_size,stride,padding,method="max"):
     img = original_img.copy()
-    """
-    Parameters:
-        original_img: input 2D array
-        kernel_size: int, the size of the window
-        stride: int, the stride of the window
-        padding: int, implicit zero paddings on both sides of the input
-        method: string, 'max' or 'avg'
-    """
+    
     # Padding
     img = np.pad(img, padding, mode='constant')
 
