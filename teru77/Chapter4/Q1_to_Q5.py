@@ -113,7 +113,7 @@ if __name__ == '__main__':
     #numpy
     A = np.random.randint(0,10,(4,4))
     print(A)
-    max_pooling = pooling(A,2,1,0,method="max")
+    max_pooling = pooling(A,2,1,0)
     avg_pooling = pooling(A,2,1,0,method="avg") 
     print(max_pooling)      
     print(avg_pooling) 
