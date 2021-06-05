@@ -58,11 +58,6 @@ class Convolution:
         out = np.dot(col, col_W) + self.b
         out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
 
-        #(逆伝播時に使用する)中間データを保存
-        self.x = x
-        self.col = col
-        self.col_W = col_W
-
         return out
 
 
