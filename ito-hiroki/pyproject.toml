@@ -15,6 +15,7 @@ matplotlib = "^3.4.2"
 ipympl = "^0.7.0"
 torch = "^1.8.1"
 torchvision = "^0.9.1"
+tqdm = "^4.60.0"
 
 [tool.poetry.dev-dependencies]
 
