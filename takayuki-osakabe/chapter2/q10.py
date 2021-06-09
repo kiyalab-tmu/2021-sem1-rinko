@@ -1,10 +1,7 @@
 import cv2
 import numpy as np
 
-Image = np.ndarray
-
-
-def median_filter(img: Image, filter_size: int = 3) -> Image:
+def median_filter(img, filter_size=3):
     H, W, C = img.shape
     P = filter_size // 2
 
@@ -21,9 +18,4 @@ def median_filter(img: Image, filter_size: int = 3) -> Image:
                 )
     return out[P : P + H, P : P + H].astype(np.uint8)
 
-
-if __name__ == "__main__":
-    img = cv2.imread("./img/imori_noise.jpg")
-    cv2.imshow("Median filter", median_filter(img))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+img = cv2.imread("./img/imori_noise.jpg")
