@@ -52,7 +52,7 @@ class Net(nn.Module):
 BATCH_SIZE = 500
 transform = torchvision.transforms.ToTensor()
 #60,000
-fashion_mnist_data = torchvision.datasets.MNIST(
+fashion_mnist_data = torchvision.datasets.FashionMNIST(
     root = './fashion-mnist', 
     train = True, 
     download = True, 
@@ -63,7 +63,7 @@ data_loader = torch.utils.data.DataLoader(
     shuffle=True)
 
 #10,000
-fashion_mnist_data_test = torchvision.datasets.MNIST(
+fashion_mnist_data_test = torchvision.datasets.FashionMNIST(
     root = './fashion-mnist', 
     train = False, 
     download = True, 
