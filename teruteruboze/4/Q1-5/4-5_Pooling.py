@@ -5,17 +5,46 @@ class FilterKernel:
         self.W = Filter
         self.b = bias
 
-        self.FH, self.FW = self.W.shape
-        self.W = self.W.reshape([1, self.FH*self.FW]) # Filterのreshape
-
     def conv2D(self, x):
+        self.FH, self.FW = self.W.shape
         H,   W = x.shape
 
         OH = 1 + int((H - self.FH))
         OW = 1 + int((W - self.FW))
         
+        Knl = self.W.reshape([1, self.FH*self.FW]) # Filterのreshape
         x   = self.im2col(x, OH, OW) # xのim2col化
-        Out = (self.W @ x) + self.b # 計算
+        Out = (Knl @ x) + self.b # 計算
+
+        return Out.reshape([OH, OW])
+
+    def AvePooling2D(self, x, FH, FW):
+        self.FH = FH
+        self.FW = FW
+        print(self.FW, self.FH)
+        H,   W = x.shape
+
+        OH = 1 + int((H - FH))
+        OW = 1 + int((W - FW))
+        
+        x   = self.im2col(x, OH, OW) # xのim2col化
+        print(x.shape)
+        Out = np.mean(x, axis=0)
+
+        return Out.reshape([OH, OW])
+
+    def MaxPooling2D(self, x, FH, FW):
+        self.FH = FH
+        self.FW = FW
+        print(self.FW, self.FH)
+        H,   W = x.shape
+
+        OH = 1 + int((H - FH))
+        OW = 1 + int((W - FW))
+        
+        x   = self.im2col(x, OH, OW) # xのim2col化
+        print(x.shape)
+        Out = np.max(x, axis=0)
 
         return Out.reshape([OH, OW])
 
@@ -47,5 +76,10 @@ if __name__ == '__main__':
                   [0, 1, 2, 3],
                   [3, 0, 1, 2],
                   [2, 3, 0, 1]])
-    out = Filter.conv2D(x)
-    print(out)
+    Conv    = Filter.conv2D(x)
+    AvePool = Filter.AvePooling2D(x, 3, 3)
+    MaxPool = Filter.MaxPooling2D(x, 3, 3)
+
+    print(Conv)
+    print(AvePool)
+    print(MaxPool)
