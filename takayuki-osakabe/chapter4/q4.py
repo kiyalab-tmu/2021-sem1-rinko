@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-from utils import *
+from layers import *
 
 img = np.array(Image.open('./lena.png').convert('L'))
 img = img.reshape(1, 1, img.shape[0], img.shape[1])
