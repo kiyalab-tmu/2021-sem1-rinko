@@ -59,9 +59,9 @@ def cross_entropy(pred_y, y):
 
 def main():
     # donwload data & make DataLoader
-    data_path = 'jimar884/chapter3/data'
-    train_dataset = FashionMNIST(data_path, train=True, download=False, transform=transforms.ToTensor())
-    test_dataset = FashionMNIST(data_path, train=False, download=False, transform=transforms.ToTensor())
+    data_path = 'jimar884/chapter4/data'
+    train_dataset = FashionMNIST(data_path, train=True, download=True, transform=transforms.ToTensor())
+    test_dataset = FashionMNIST(data_path, train=False, download=True, transform=transforms.ToTensor())
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
     # print(train_dataset.data[0].shape)
