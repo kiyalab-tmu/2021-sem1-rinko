@@ -1,6 +1,8 @@
 *.npy
 *.npz
 *.jpg
+*.png
+*.pth
 data/
 
 # Byte-compiled / optimized / DLL files
