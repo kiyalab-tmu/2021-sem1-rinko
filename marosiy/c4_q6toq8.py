@@ -29,6 +29,8 @@ from keras.layers import Dense, Input, Dropout, Flatten, Conv2D, AveragePooling2
 from keras.models import Model
 from keras import regularizers
 
+
+ex_name = sys.argv[1]
 gpu_id = 1
 print(tf.__version__)
 if tf.__version__ >= "2.1.0":
@@ -102,38 +104,40 @@ test_one_hot_vector = createOneHotVector(test_labels)
 # ###アプリ
 
 # #Lenet
-# model = keras.Sequential([
-#     Conv2D(6, (5, 5), activation='relu', strides=(1, 1), padding='same',input_shape=(28, 28, 1)),
-#     AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-#     Conv2D(16, (5, 5), activation='relu', strides=(1, 1), padding='valid'),
-#     AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-#     Flatten(),
-#     Dense(150, activation='relu'),
-#     Dense(10, activation='softmax')
-# ])
+model = keras.Sequential([
+    Input(shape=(28,28)),
+    Lambda(lambda x: tf.expand_dims(x, -1)),
+    Conv2D(6, (5, 5), activation='relu', strides=(1, 1), padding='same',input_shape=(28, 28, 1)),
+    AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
+    Conv2D(16, (5, 5), activation='relu', strides=(1, 1), padding='valid'),
+    AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
+    Flatten(),
+    Dense(150, activation='relu'),
+    Dense(10, activation='softmax')
+])
 # #Lenet
 
 #Alex
-model = tf.keras.Sequential([
-    Input(shape=(28,28)),
-    Lambda(lambda x: tf.expand_dims(x, -1)),
-    tf.keras.layers.experimental.preprocessing.Resizing(224, 224, interpolation='bilinear'),
-    Conv2D(96, (11, 11), activation='relu', strides=(4, 4), padding='valid'),
-    MaxPooling2D(pool_size=(3, 3), strides=(2,2), padding='valid', data_format=None),
-    Conv2D(256, (5, 5), activation='relu', strides=(2, 2), padding='same'),
-    MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
-    Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-    Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-    Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-    MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
-    Flatten(),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(1000, activation='relu'),
-    Dense(10, activation='softmax')
-])
+# model = tf.keras.Sequential([
+#     Input(shape=(28,28)),
+#     Lambda(lambda x: tf.expand_dims(x, -1)),
+#     tf.keras.layers.experimental.preprocessing.Resizing(224, 224, interpolation='bilinear'),
+#     Conv2D(96, (11, 11), activation='relu', strides=(4, 4), padding='valid'),
+#     MaxPooling2D(pool_size=(3, 3), strides=(2,2), padding='valid', data_format=None),
+#     Conv2D(256, (5, 5), activation='relu', strides=(2, 2), padding='same'),
+#     MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
+#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
+#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
+#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
+#     MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
+#     Flatten(),
+#     Dense(4096, activation='relu'),
+#     Dropout(0.5),
+#     Dense(4096, activation='relu'),
+#     Dropout(0.5),
+#     Dense(1000, activation='relu'),
+#     Dense(10, activation='softmax')
+# ])
 #Alex
 
 
@@ -170,8 +174,8 @@ model = tf.keras.Sequential([
 # ])
 # #VGG
 
-
-model.compile(optimizer='adam',
+adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+model.compile(optimizer=adam,
               loss='categorical_crossentropy',
               metrics=['acc'])
 print(model.summary())
@@ -192,7 +196,7 @@ print('最終的な入力shape:', train_data.shape)
 """
 学習
 """
-checkpoint = keras.callbacks.ModelCheckpoint('model.h5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+checkpoint = keras.callbacks.ModelCheckpoint(ex_name + 'model.h5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='min')
 history = model.fit(x=train_data, y=train_one_hot_vector, batch_size=256, epochs=50, verbose=2, validation_split=0.2, shuffle=True, callbacks=[checkpoint])
 
@@ -261,7 +265,7 @@ plt.clf()
 """
 #一番良かったモデルを読み込む
 model = None
-model = keras.models.load_model('model.h5')
+model = keras.models.load_model(ex_name + 'model.h5')
 
 #評価
 test_loss, test_acc = model.evaluate(test_data, test_one_hot_vector, verbose=0)
@@ -312,7 +316,7 @@ sns.heatmap(cm_yoko_percent, annot=True, xticklabels=label_encoder.classes_, yti
 plt.xlabel('Predicted Label')
 plt.ylabel('True Label')
 plt.show()
-plt.savefig("model_recall_result" + ".png")
+plt.savefig(ex_name +"model_recall_result" + ".png")
 plt.clf()
 
 
