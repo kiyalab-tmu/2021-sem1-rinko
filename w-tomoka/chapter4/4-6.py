@@ -27,29 +27,8 @@ class LeNet(nn.Module):
     x = self.fc3(x)
     return x
 
-
-class Net(nn.Module):
-
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5, 1)
-        self.conv2 = nn.Conv2d(20, 50, 5, 1)
-        self.fc1 = nn.Linear(4*4*50, 500)
-        self.fc2 = nn.Linear(500, 10)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2, 2)
-        x = x.view(-1, 4*4*50)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
-
-
 #dataset
-BATCH_SIZE = 500
+BATCH_SIZE = 128
 transform = torchvision.transforms.ToTensor()
 #60,000
 fashion_mnist_data = torchvision.datasets.FashionMNIST(
@@ -69,7 +48,7 @@ fashion_mnist_data_test = torchvision.datasets.FashionMNIST(
     download = True, 
     transform = transform)
 data_loader_test = torch.utils.data.DataLoader(
-    dataset=fashion_mnist_data,
+    dataset=fashion_mnist_data_test,
     batch_size=BATCH_SIZE,
     shuffle=False)
 
@@ -77,7 +56,7 @@ data_loader_test = torch.utils.data.DataLoader(
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 net = LeNet()
 net = net.to(device)
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+optimizer = optim.SGD(net.parameters(), lr=0.1)
 criterion = nn.CrossEntropyLoss()
 
 train_losses = []
@@ -85,7 +64,7 @@ train_accs = []
 test_losses = []
 test_accs = []
 
-epochs = 40
+epochs = 150
 for epoch in range(epochs):
   #学習ループ
   running_loss = 0.0
@@ -123,8 +102,8 @@ for epoch in range(epochs):
   test_accs.append(test_acc)
 
   print(f'epoch:{epoch}, '
-        f'train_loss: {running_loss:.3f}, train_acc: {running_acc:.3f}, '
-        f'test_loss: {test_loss:.3f}, test_acc{test_acc:.3f}')
+        f'train_loss: {running_loss:.6f}, train_acc: {running_acc:.6f}, '
+        f'test_loss: {test_loss:.6f}, test_acc{test_acc:.6f}')
   
 
 fig, ax = plt.subplots(2)
@@ -134,4 +113,14 @@ ax[0].legend()
 ax[1].plot(train_accs, label='train acc')
 ax[1].plot(test_accs, label='test acc')
 ax[1].legend()
+plt.show()
+
+plt.plot(train_losses, label='train loss')
+plt.plot(test_losses, label='test loss')
+plt.legend()
+plt.show()
+
+plt.plot(train_accs, label='train acc')
+plt.plot(test_accs, label='test acc')
+plt.legend()
 plt.show()
