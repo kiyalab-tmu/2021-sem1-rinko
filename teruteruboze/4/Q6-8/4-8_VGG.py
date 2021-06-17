@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     # folder creation #######################################################################
     # config file (json)
-    with open('4-6_LeNet.json') as f:
+    with open('4-8_VGG.json') as f:
         config = json.load(f)
     # make necessary dir
     makeDir.do(config['path']['log'], config['path']['log_Fname'],
@@ -34,10 +34,9 @@ if __name__ == '__main__':
     ''')
 
     # main #################################################################################
-    dataset = makeDataset.BasicDataset(config['training']['BATCH_SIZE'],config['path']['dataset'],config['dataset']['num_valid'])
+    dataset = makeDataset.BasicDatasetPlus(config['training']['BATCH_SIZE'],config['path']['dataset'],config['dataset']['num_valid'])
     dataset.add_class_label(config['dataset']['classes'])
-    model   = makeNet.LeNet()
-    model.weight_init
+    model   = makeNet.VGG11()
     device  = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model   = model.to(device)
 

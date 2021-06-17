@@ -1,12 +1,12 @@
 {
     "proj":{
-        "name":"Fashion MNIST training LeNet",
+        "name":"Fashion MNIST training VGG",
         "date":"2021/06/12",
         "comments":"Train:50000, Validation:10000"
     },
 
     "path":{
-        "default":"./results/4-6_LeNet_6/exports/",
+        "default":"./results/4-8_VGG11_2/exports/",
         "dataset":"../../datasets/FashionMNIST/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
