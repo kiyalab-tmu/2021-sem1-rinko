@@ -18,30 +18,17 @@ test_dataset = torchvision.datasets.FashionMNIST(root = './data',train=False,dow
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256,shuffle=False)
 
 #Define a model
-class LeNet(nn.Module):
-    def __init__(self):
-        super(LeNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, kernel_size=5, padding=2)
-        self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
-        self.fc1   = nn.Linear(5*5*16, 120)
-        self.fc2   = nn.Linear(120, 84)
-        self.fc3   = nn.Linear(84, 10)
-    def forward(self, x):
-        x = F.avg_pool2d(F.sigmoid(self.conv1(x)), kernel_size=2)
-        x = F.avg_pool2d(F.sigmoid(self.conv2(x)), kernel_size=2)
-        x = x.view(-1,5*5*16)
-        x = F.sigmoid(self.fc1(x))
-        x = F.sigmoid(self.fc2(x))
-        x = self.fc3(x)
-        return x
 
-model = LeNet()
+model = torchvision.models.resnet18()
+model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3)
+model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+
 model = model.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
-epochs = 1
+epochs = 30
 train_losses = []
 train_accuracies = []
 best_train_loss = None
@@ -119,7 +106,7 @@ plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q6_loss.png')
+plt.savefig('./q12_loss.png')
 plt.close()
 
 # Plot result(acc)
@@ -128,7 +115,7 @@ plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q6_acc.png')
+plt.savefig('./q12_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")

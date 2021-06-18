@@ -22,16 +22,23 @@ class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, kernel_size=5, padding=2)
+        self.bn1 = nn.BatchNorm2d(6)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
+        self.bn2 = nn.BatchNorm2d(16)
         self.fc1   = nn.Linear(5*5*16, 120)
         self.fc2   = nn.Linear(120, 84)
         self.fc3   = nn.Linear(84, 10)
+        self.sigmoid = nn.Sigmoid()
     def forward(self, x):
-        x = F.avg_pool2d(F.sigmoid(self.conv1(x)), kernel_size=2)
-        x = F.avg_pool2d(F.sigmoid(self.conv2(x)), kernel_size=2)
+        x = self.sigmoid(self.conv1(x)), kernel_size=2)
+        x = self.bn1(x)
+        x = F.avg_pool2d(x)
+        x = self.sigmoid(self.conv2(x)), kernel_size=2)
+        x = self.bn2(x)
+        x =F.avg_pool2d(x)
         x = x.view(-1,5*5*16)
-        x = F.sigmoid(self.fc1(x))
-        x = F.sigmoid(self.fc2(x))
+        x = self.sigmoid(self.fc1(x))
+        x = self.sigmoid(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -41,7 +48,7 @@ model = model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
-epochs = 1
+epochs = 100
 train_losses = []
 train_accuracies = []
 best_train_loss = None
@@ -119,7 +126,7 @@ plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q6_loss.png')
+plt.savefig('./q11_loss.png')
 plt.close()
 
 # Plot result(acc)
@@ -128,7 +135,7 @@ plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q6_acc.png')
+plt.savefig('./q11_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")
