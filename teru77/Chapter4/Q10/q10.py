@@ -12,22 +12,24 @@ print(device)
 transform = transforms.Compose([transforms.Resize((224, 224)),transforms.ToTensor()])
 
 train_dataset = torchvision.datasets.FashionMNIST(root = './data',train=True,download=True,transform=transform)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256,shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128,shuffle=True)
 
 test_dataset = torchvision.datasets.FashionMNIST(root = './data',train=False,download=True,transform=transform)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256,shuffle=False)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128,shuffle=False)
 
 #Define a model
 
-model = torchvision.models.densenet121()
-model.features[0] = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-model.classifier = nn.Linear(in_features=1024, out_features=10, bias=True)
+model = torchvision.models.googlenet(init_weights=True)
+model.aux_logits=False #これがないとtorch.max(pred_y, 1)でエラーが出る
+model.conv1.conv = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+model.fc= nn.Linear(in_features=1024, out_features=10, bias=True)
 model = model.to(device)
+
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
-epochs = 30
+epochs = 10
 train_losses = []
 train_accuracies = []
 best_train_loss = None
@@ -75,9 +77,9 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 torch.save(model.state_dict(), './model.pth')
   
 #test
-model = torchvision.models.densenet121()
-model.features[0] = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-model.classifier = nn.Linear(in_features=1024, out_features=10, bias=True)
+model = torchvision.models.googlenet(init_weights=True)
+model.conv1.conv = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+model.fc= nn.Linear(in_features=1024, out_features=10, bias=True)
 model.load_state_dict(torch.load('./model.pth'))    
 model = model.to(device)
 model.eval()  
@@ -107,7 +109,7 @@ plt.title('Loss')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('./q11_loss.png')
+plt.savefig('./q6_loss.png')
 plt.close()
 
 # Plot result(acc)
@@ -116,7 +118,7 @@ plt.title('Accuracies')
 plt.xlabel('epoch')
 plt.ylabel('Acc')
 plt.legend()
-plt.savefig('./q11_acc.png')
+plt.savefig('./q6_acc.png')
 plt.close()
 print("-"*30)
 print(f"best_train_loss: {best_train_loss}")

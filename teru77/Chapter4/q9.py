@@ -12,10 +12,10 @@ print(device)
 transform = transforms.Compose([transforms.Resize((224, 224)),transforms.ToTensor()])
 
 train_dataset = torchvision.datasets.FashionMNIST(root = './data',train=True,download=True,transform=transform)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256,shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=128,shuffle=True)
 
 test_dataset = torchvision.datasets.FashionMNIST(root = './data',train=False,download=True,transform=transform)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=256,shuffle=False)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=128,shuffle=False)
 
 #Define a model
 
