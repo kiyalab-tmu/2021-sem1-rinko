@@ -1,7 +1,6 @@
 import argparse
 import os
 import random
-import sys
 
 import numpy as np
 import torch
@@ -10,10 +9,10 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from torchvision.transforms.transforms import Resize
 from tqdm import tqdm
 
-from model import LeNet, AlexNet, SmallAlexNet, VGG11, SmallVGG11
+from model import VGG11, AlexNet, LeNet, SmallAlexNet, SmallVGG11
+from densenet import densenet121
 
 
 def worker_init_fn(worker_id):
@@ -143,6 +142,8 @@ if __name__ == "__main__":
         model = SmallAlexNet().to(device)
     elif args.model == "vgg11":
         model = SmallVGG11().to(device)
+    elif args.model == "densenet121":
+        model = densenet121().to(device)
     else:
         raise ValueError(f"model argment is invalid. {args.model}")
 
