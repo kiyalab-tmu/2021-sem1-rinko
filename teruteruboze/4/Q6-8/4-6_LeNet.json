@@ -1,20 +1,19 @@
 {
     "proj":{
-        "name":"Fashion MNIST training MLP",
-        "date":"2021/05/24",
-        "comments":"both weight and bias are init"
+        "name":"Fashion MNIST training LeNet",
+        "date":"2021/06/12",
+        "comments":"Train:50000, Validation:10000"
     },
 
     "path":{
-        "default":"./results/3-3_Multilayer_Perceptrons_B256E100_4/exports/",
-        "dataset":"./_dataset_/data/",
+        "default":"./results/4-6_LeNet_6/exports/",
+        "dataset":"../../datasets/FashionMNIST/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
         "csv":"CSV/",
         "ckpt":"checkpoint/",
         "fig":"figures/"
     },
-
     "dataset":{
         "classes": [
             "T-shirt/top",
@@ -27,12 +26,15 @@
             "Sneaker",
             "Bag",
             "Ankle boot"
-        ]
+        ],
+        "num_valid":10000
     },
 
     "training":{
-        "BATCH_SIZE":256,
-        "EPOCH":100,
-        "lr":1e-2
+        "BATCH_SIZE":128,
+        "EPOCH":50,
+        "lr":1e-1,
+        "weight_decay":1e-4,
+        "early_stopping_num": 10
     }
 }
