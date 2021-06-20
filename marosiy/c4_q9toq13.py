@@ -25,8 +25,8 @@ from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-from keras.layers import Dense, Input, Dropout, Flatten, Conv2D, AveragePooling2D, Reshape, Lambda, MaxPooling2D
-from keras.models import Model
+from keras.layers import Dense, Input, Dropout, Flatten, Conv2D, AveragePooling2D, Reshape, Lambda, MaxPooling2D, BatchNormalization, Activation, GlobalAveragePooling2D, MaxPool2D
+from keras.models import Model, Sequential
 from keras import regularizers
 
 
@@ -96,83 +96,81 @@ test_one_hot_vector = createOneHotVector(test_labels)
 """
 モデルのコンパイル
 """
-# ###アプリ
-# model1 = keras.applications.vgg16.VGG16(include_top=False, weights=None, pooling='avg',input_shape=(28,28,1))
-# x = model1.output
+#アプリ inception
+inputs = Input(shape=(28,28, 1))
+x = tf.keras.layers.experimental.preprocessing.Resizing(75, 75, interpolation='bilinear')(inputs)
+inception = keras.applications.inception_v3.InceptionV3(include_top=False, weights=None, input_tensor=x, pooling='avg')
+x = inception.output
+predictions = Dense(train_one_hot_vector.shape[1], activation='softmax')(x)
+model = Model(inputs=inputs, outputs=predictions)
+# アプリ inception
+
+
+#アプリ resnet
+inputs = Input(shape=(28,28, 1))
+x = tf.keras.layers.experimental.preprocessing.Resizing(75, 75, interpolation='bilinear')(inputs)
+inception = keras.applications.resnet50.ResNet50(include_top=False, weights=None, input_tensor=x, pooling='avg')
+x = inception.output
+predictions = Dense(train_one_hot_vector.shape[1], activation='softmax')(x)
+model = Model(inputs=inputs, outputs=predictions)
+# アプリ resnet
+
+#アプリ densenet
+# inputs = Input(shape=(28,28, 1))
+# x = tf.keras.layers.experimental.preprocessing.Resizing(75, 75, interpolation='bilinear')(inputs)
+# inception = keras.applications.densenet.DenseNet121(include_top=False, weights=None, input_tensor=x, pooling='avg')
+# x = inception.output
 # predictions = Dense(train_one_hot_vector.shape[1], activation='softmax')(x)
-# model = Model(inputs=model1.input, outputs=predictions)
-# ###アプリ
-
-# #Lenet
-# model = keras.Sequential([
-#     Input(shape=(28,28)),
-#     Lambda(lambda x: tf.expand_dims(x, -1)),
-#     Conv2D(6, (5, 5), activation='relu', strides=(1, 1), padding='same',input_shape=(28, 28, 1)),
-#     AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-#     Conv2D(16, (5, 5), activation='relu', strides=(1, 1), padding='valid'),
-#     AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-#     Flatten(),
-#     Dense(150, activation='relu'),
-#     Dense(10, activation='softmax')
-# ])
-# #Lenet
-
-#Alex
-# model = tf.keras.Sequential([
-#     Input(shape=(28,28)),
-#     Lambda(lambda x: tf.expand_dims(x, -1)),
-#     tf.keras.layers.experimental.preprocessing.Resizing(224, 224, interpolation='bilinear'),
-#     Conv2D(96, (11, 11), activation='relu', strides=(4, 4), padding='valid'),
-#     MaxPooling2D(pool_size=(3, 3), strides=(2,2), padding='valid', data_format=None),
-#     Conv2D(256, (5, 5), activation='relu', strides=(2, 2), padding='same'),
-#     MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
-#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-#     Conv2D(384, (3, 3), activation='relu', strides=(1, 1), padding='same'),
-#     MaxPooling2D(pool_size=(3, 3), strides=None, padding='valid', data_format=None),
-#     Flatten(),
-#     Dense(4096, activation='relu'),
-#     Dropout(0.5),
-#     Dense(4096, activation='relu'),
-#     Dropout(0.5),
-#     Dense(1000, activation='relu'),
-#     Dense(10, activation='softmax')
-# ])
-#Alex
+# model = Model(inputs=inputs, outputs=predictions)
+# アプリ densenet 
 
 
-# #VGG
-model = tf.keras.Sequential([
-    Input(shape=(28,28)),
-    Lambda(lambda x: tf.expand_dims(x, -1)),
-    tf.keras.layers.experimental.preprocessing.Resizing(224, 224, interpolation='bilinear'),
-    Conv2D(64, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(64, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-    Conv2D(128, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(128, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-    Conv2D(256, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(256, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(256, (1, 1), activation='relu', strides=(1,1), padding='valid'),
-    MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-    Conv2D(512, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(512, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(256, (1, 1), activation='relu', strides=(1,1), padding='valid'),
-    MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-    Conv2D(512, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(512, (3, 3), activation='relu', strides=(1,1), padding='valid'),
-    Conv2D(256, (1, 1), activation='relu', strides=(1,1), padding='valid'),
-    MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None),
-    Flatten(),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(1000, activation='relu'),
-    Dense(10, activation='softmax')
-])
-# #VGG
+
+# NiN
+# model = Sequential()
+# model.add(Input(shape=(28,28)))
+# model.add(Lambda(lambda x: tf.expand_dims(x, -1)))
+# model.add(Conv2D(192,(5,5),padding='same',kernel_initializer='he_normal',input_shape=(28,28,1)))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(192,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(10,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(MaxPool2D(pool_size=(3,3),strides=(2,2),padding='same'))
+
+# model.add(Dropout(0.2))
+
+# model.add(Conv2D(256,(5,5),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(256,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(10,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(MaxPool2D(pool_size=(3,3),strides=(2,2),padding='same'))
+
+# model.add(Dropout(0.2))
+
+# model.add(Conv2D(384,(3,3),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(384,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))
+# model.add(Conv2D(10,(1,1),padding='same',kernel_initializer='he_normal'))
+# model.add(BatchNormalization())
+# model.add(Activation('relu'))  
+
+# model.add(GlobalAveragePooling2D())
+# model.add(Activation('softmax'))
+# NiN
+
+
 
 adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(optimizer=adam,
@@ -235,7 +233,7 @@ plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.legend(['loss', 'val_loss'])
 plt.show()
-plt.savefig("loss_result" + ".png")
+plt.savefig(ex_name + "loss_result" + ".png")
 plt.clf()
 
 
@@ -248,7 +246,7 @@ plt.legend(['acc', 'val_acc'])
 plt.xlim(0, 100) 
 plt.ylim(0, 1.0)
 plt.show()
-plt.savefig("acc_result" + ".png")
+plt.savefig(ex_name + "acc_result" + ".png")
 plt.clf()
 
 
