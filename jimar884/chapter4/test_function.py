@@ -2,13 +2,8 @@ import torch.nn as nn
 import torch
 import numpy as np
 
-a = np.array([
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1]
-])
-
-print(a)
-
-a.resize(6, 6)
-print(a)
+m = nn.AdaptiveAvgPool2d((5, 7))
+input = torch.randn(1, 64, 8, 9)
+output = m(input)
+print(input.shape)
+print(output.shape)
