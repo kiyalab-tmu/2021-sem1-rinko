@@ -104,20 +104,18 @@ for epoch in range(epoch_num):
     optimizer.zero_grad() 
     outputs = net(inputs) 
     val_loss = criterion(outputs, labels) 
-    val_loss.backward() 
-    optimizer.step() 
     val_running_loss[epoch] += val_loss.item()
         
   running_loss[epoch] /= len(train_loader)
   val_running_loss[epoch] /= len(val_loader)
 
-  if val_running_loss[epoch] > best_score:
+  if running_loss[epoch] > best_score:
     count += 1
     print("count:", count)
 
   else:
     count = 0
-    best_score = val_running_loss[epoch]
+    best_score = running_loss[epoch]
 
   if count >= stop:
     print("early stopping")
@@ -160,7 +158,8 @@ with torch.no_grad():
     images, labels = data[0].to(device), data[1].to(device)
     outputs = net(images)
     _, pred_label = torch.max(outputs.data, 1)
-    
+
+  #ここの部分でfor文を回さないようにsumを使う  
   for j in range(len(pred_label)):
     if pred_label[j].int() == labels[j]:
       correct += 1  
