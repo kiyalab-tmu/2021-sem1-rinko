@@ -1,0 +1,40 @@
+{
+    "proj":{
+        "name":"Fashion MNIST training LeNet with BN",
+        "date":"2021/06/16",
+        "comments":"seed 192"
+    },
+
+    "path":{
+        "default":"./results/4-11_LeNet_w_BN_3-2/exports/",
+        "dataset":"../../datasets/FashionMNIST/_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+    "dataset":{
+        "classes": [
+            "T-shirt/top",
+            "Trouser",
+            "Pullover",
+            "Dress",
+            "Coat",
+            "Sandal",
+            "Shirt",
+            "Sneaker",
+            "Bag",
+            "Ankle boot"
+        ],
+        "num_train":5000,
+        "num_valid":1000
+    },
+
+    "training":{
+        "BATCH_SIZE":128,
+        "EPOCH":50,
+        "lr":1e-1,
+        "early_stopping_num": 99
+    }
+}
