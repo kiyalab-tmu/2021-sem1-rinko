@@ -38,6 +38,44 @@ class LeNet(nn.Module):
         return out
 
 
+class LeNetBN(nn.Module):
+    """
+    BN実装したいけど時間無いので一旦パス
+    """
+
+    def __init__(self, in_channel=1, out_channel=10):
+        super(LeNetBN, self).__init__()
+        self.conv1 = nn.Conv2d(in_channel, 6, kernel_size=5, stride=1, padding=2)
+        self.sigmoid1 = nn.Sigmoid()
+        self.bn1 = nn.BatchNorm2d(6)
+        self.pool1 = nn.AvgPool2d(2, 2, 0)
+        self.conv2 = nn.Conv2d(6, 16, 5, 1, 0)
+        # 別に上のsigmoidを使いまわしても良いはず
+        self.sigmoid2 = nn.Sigmoid()
+        self.bn2 = nn.BatchNorm2d(16)
+        self.pool2 = nn.AvgPool2d(2, 2, 0)
+
+        self.flatten = nn.Flatten()
+        self.fcn1 = nn.Linear(400, 120)
+        self.sigmoid3 = nn.Sigmoid()
+        self.fcn2 = nn.Linear(120, 84)
+        self.sigmoid4 = nn.Sigmoid()
+        self.fcn3 = nn.Linear(84, out_channel)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.sigmoid1(out)
+        out = self.bn1(out)
+        out = self.pool1(out)
+        out = self.conv2(out)
+        out = self.sigmoid2(out)
+        out = self.bn2(out)
+        out = self.pool2(out)
+        out = self.flatten(out)
+        out = self.fcn1(out)
+        return out
+
+
 class AlexNet(nn.Module):
     def __init__(self, in_channel=1, out_channel=10):
         super(AlexNet, self).__init__()

@@ -10,9 +10,13 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
-from model import VGG11, AlexNet, LeNet, SmallAlexNet, SmallVGG11
+from model import VGG11, AlexNet, LeNet, SmallAlexNet, SmallVGG11, LeNetBN
 from densenet import densenet121
+from network_in_network import NiN
+from inception import Inception
+from resnet import resnet20
 
 
 def worker_init_fn(worker_id):
@@ -64,8 +68,8 @@ if __name__ == "__main__":
 
     # Constants
     DATA_PATH = "../data/"
-    TRAIN_BATCH_SIZE = 128
-    TEST_BATCH_SIZE = 256
+    TRAIN_BATCH_SIZE = 64
+    TEST_BATCH_SIZE = 128
     EPOCH_NUM = 100
     CHECKPOINT_FOLDER = "./checkpoints/"
     NUM_WORKER = 2
@@ -80,12 +84,12 @@ if __name__ == "__main__":
     random.seed(200)
     np.random.seed(300)
     cudnn.deterministic = True
-    cudnn.benchmark = False
+    cudnn.benchmark = True
 
     if args.dataset == "fashion":
         num_classes = 10
 
-        if args.model == "lenet":
+        if args.model in ["lenet", "lenetbn", "resnet20"]:
             transform_train = transforms.Compose(
                 [
                     transforms.RandomHorizontalFlip(),
@@ -94,12 +98,12 @@ if __name__ == "__main__":
                 ]
             )
             transform_test = transforms.Compose([transforms.ToTensor()])
-        elif args.model in ["alexnet", "vgg11"]:
+        elif args.model in ["alexnet", "vgg11", "densenet121", "inception", "nin"]:
             transform_train = transforms.Compose(
                 [
                     transforms.Resize(224),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.RandomCrop(224, padding=32),
+                    # transforms.RandomHorizontalFlip(),
+                    # transforms.RandomCrop(224, padding=32),
                     transforms.ToTensor(),
                 ]
             )
@@ -144,6 +148,14 @@ if __name__ == "__main__":
         model = SmallVGG11().to(device)
     elif args.model == "densenet121":
         model = densenet121().to(device)
+    elif args.model == "nin":
+        model = NiN().to(device)
+    elif args.model == "inception":
+        model = Inception().to(device)
+    elif args.model == "lenetbn":
+        model = LeNetBN().to(device)
+    elif args.model == "resnet20":
+        model = resnet20().to(device)
     else:
         raise ValueError(f"model argment is invalid. {args.model}")
 
@@ -151,6 +163,8 @@ if __name__ == "__main__":
     optimizer = optim.SGD(
         model.parameters(), lr=0.01, momentum=0.9, weight_decay=0.0005
     )
+    # for
+    # optimizer = optim.Adam(model.parameters(), lr=0.01)
     optim_scheduler = optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=[25, 50, 75], gamma=0.2
     )
@@ -160,7 +174,7 @@ if __name__ == "__main__":
     test_loss_list = []
     test_accuracy_list = []
 
-    for epoch in range(EPOCH_NUM):
+    for epoch in range(100):
         print("EPOCH: {}".format(epoch))
         # train
         loss, accuracy = one_epoch(model, train_dl, criterion, optimizer=optimizer)
@@ -185,3 +199,10 @@ if __name__ == "__main__":
     )
 
     print("best test accuracy: {:.3%}".format(max(test_accuracy_list)))
+
+    fig, ax = plt.subplots(2, 1)
+    ax[0].plot(train_loss_list, label="train_loss", color="red")
+    ax[0].plot(test_loss_list, label="test_loss", color="blue")
+    ax[1].plot(train_accuracy_list, label="train_acc", color="red")
+    ax[1].plot(test_accuracy_list, label="test_acc", color="blue")
+    fig.savefig(f"baseline_{args.model}_{args.dataset}.png")
