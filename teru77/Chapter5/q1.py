@@ -21,7 +21,7 @@ def Create_a_word_vocabulary():
     vocabulary.clear()
     vocabulary.update(list)
     
-    #頻度が薫物から順にインデックスをつけていく
+    #頻度が高い物から順にインデックスをつけていく
     for i,key in enumerate(vocabulary.keys()):
         vocabulary[key] = i
     return vocabulary
@@ -82,7 +82,7 @@ def Create_a_charactor_vocabulary():
     vocabulary.clear()
     vocabulary.update(list)
     
-    #頻度が薫物から順にインデックスをつけていく
+    #頻度が高い物から順にインデックスをつけていく
     for i,key in enumerate(vocabulary.keys()):
         vocabulary[key] = i
     return vocabulary
