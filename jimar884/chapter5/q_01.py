@@ -81,13 +81,11 @@ def main():
     #     print(new_lines[i])
 
     new_lines = character_tokenizer(lines)
-    print(len(lines))
-    print(len(new_lines))
-    # for i in range(10):
-    #     print(lines[i])
-    # print("-------"*10)
-    # for i in range(10):
-    #     print(new_lines[i])
+    for i in range(10):
+        print(lines[i])
+    print("-------"*10)
+    for i in range(10):
+        print(new_lines[i])
 
 
 if __name__=='__main__':

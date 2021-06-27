@@ -66,7 +66,7 @@ class TTMDataset(torch.utils.data.Dataset):
             for i in range(len(line) - partition - 1):
                 x = torch.tensor(line[i:i+partition])
                 data.append(x)
-                y = torch.tensor(line[i + partition + 1])
+                y = torch.tensor(line[i + partition])
                 label.append(y)
         return data, label
 

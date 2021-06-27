@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
+import random
 
 
 num_chars = 40   # kind of characters
@@ -54,6 +55,7 @@ class TTMDataset(torch.utils.data.Dataset):
         file = open(DataPath, 'r', encoding='utf-8-sig')   # utf-8-sig removes '/ufeff'
         lines = file.readlines()
         lines = character_tokenizer(lines)
+        random.shuffle(lines)
         train = lines[:int(len(lines)*0.9)]
         test = lines[int(len(lines)*0.9):]
         self.data = []
@@ -71,7 +73,7 @@ class TTMDataset(torch.utils.data.Dataset):
             for i in range(len(line) - partition - 1):
                 x = torch.tensor(line[i:i+partition])
                 data.append(x)
-                y = torch.tensor(line[i + partition + 1])
+                y = torch.tensor(line[i + partition])
                 label.append(y)
         return data, label
 
