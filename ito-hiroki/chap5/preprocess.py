@@ -13,7 +13,7 @@ def line_split(line, base="word"):
 
 
 if __name__ == "__main__":
-    split_rule = "word"
+    split_rule = "char"
     save_path = Path("../data/TheTimeMachine/")
     save_path.mkdir(parents=True, exist_ok=True)
 
@@ -24,6 +24,6 @@ if __name__ == "__main__":
     for line in lines:
         counter.update(line_split(line.strip(), base=split_rule))
 
-    pairs = [("<EOS>", 0), ("<UNK>", 0)] + counter.most_common()
+    pairs = [("<BOS>", 0), ("<EOS>", 0), ("<UNK>", 0)] + counter.most_common()
     result_df = pd.DataFrame(pairs, columns=["word", "count"])
     result_df.to_csv(save_path / "{}.csv".format(split_rule), index=False)

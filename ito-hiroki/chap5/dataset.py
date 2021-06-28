@@ -42,7 +42,11 @@ class TimeMachineData:
         data = []
         for text in self.data:
             if text.strip() != "":
-                text = [self.map_dict[char] for char in text.strip()]
+                text = (
+                    [self.map_dict["<BOS>"]]
+                    + [self.map_dict[char] for char in text.strip()]
+                    + [self.map_dict["<EOS>"]]
+                )
                 data.append(text)
 
         data = torch.from_numpy(np.array(sum(data, []))).long()
