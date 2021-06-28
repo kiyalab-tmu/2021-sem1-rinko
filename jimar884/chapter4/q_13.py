@@ -1,10 +1,11 @@
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.lib.function_base import select
+from numpy.lib.function_base import average, select
 from numpy.lib.shape_base import get_array_prepare
 import torch
 from torch._C import device
+from torch.autograd import grad_mode
 from torch.functional import norm
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,63 +20,57 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 from torchvision.datasets import FashionMNIST
 
-batch_size = 256
+batch_size = 32
 num_class = 10
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-class Dense(nn.Module):
-    def __init__(self, in_channels, out_channels, num, stride=1):
+class Bottleneck(nn.Module):
+    def __init__(self, in_channels, grow_rate=32):
         super().__init__()
-        self.layers = [nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=1, stride=stride, padding=0),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1)
-            # nn.BatchNorm2d(out_channels)
-            # nn.ReLU()
-        )] * num
-        self.bn = nn.BatchNorm2d(out_channels)
+        middle_channels = grow_rate*4
+        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.conv1 = nn.Conv2d(in_channels, middle_channels, 1, 1, 0)
+        self.bn2 = nn.BatchNorm2d(middle_channels)
+        self.conv2 = nn.Conv2d(middle_channels, grow_rate, 3, 1, 1)
         self.relu = nn.ReLU()
-        self.num = num
 
     def forward(self, x):
-        last_maps = 0
-        map = x
-        for layer in self.layers:
-            last_maps += map
-            map = layer(self.relu(self.bn(last_maps)))
-        out = self.relu(self.bn(map))
-        return out
+        out = self.conv1(self.relu(self.bn1(x)))
+        out = self.conv2(self.relu(self.bn2(out)))
+        out = torch.cat((x, out), 1)
+        return out   # num of chnnale: grow_rate + num of x's chnnels
+
+def dense(in_channels, num_bottleneck, grow_rate=32):
+    layers = []
+    for i in range(num_bottleneck):
+        layers.append(Bottleneck(in_channels, grow_rate))
+        in_channels += grow_rate
+    return nn.Sequential(*layers)
 
 
 class DenseNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv = nn.Conv2d(1, 64, 7, 2, 3)   # 224x224x1 -> 112x112x64
-        self.pool = nn.MaxPool2d(3,2, 1)   # 112x112x64 -> 56x56x64
-        self.dense1 = Dense(64, 64, 6)   # 56x56x64
+        self.conv = nn.Conv2d(1, 32, 7, 2, 3)   # 224x224x1 -> 112x112x32
+        self.pool = nn.MaxPool2d(3, 2, 1)   # 112x112x32 -> 56x56x32
+        self.dense1 = dense(32, 6)   # 56x56x32 -> 56x56x(32*6+32)
         self.trans1 = nn.Sequential(
-            nn.Conv2d(64, 128, 1, 1, 0),   # 56x56x64 -> 56x56x128
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.AvgPool2d(2, 2, 0)   # 56x56x128 -> 28x28x128
+            nn.Conv2d(32*6+32, 32, 1, 1, 0),   # 56x56x(32*6+32) -> 56x56x32
+            nn.AvgPool2d(2, 2)   # 56x56x32 -> 28x28x32
         )
-        self.dense2 = Dense(128, 128, 12)   # 28x28x128
+        self.dense2 = dense(32, 12)   # 28x28x32 -> 28x28x(32*12+32)
         self.trans2 = nn.Sequential(
-            nn.Conv2d(128, 256, 1, 1, 0),   # 28x28x128 -> 28x28x256
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.AvgPool2d(2, 2, 0)   # 28x28x256 -> 14x14x256
+            nn.Conv2d(32*12+32, 32, 1, 1, 0),   # 28x28x(32*12+32) -> 28x28x32
+            nn.AvgPool2d(2, 2)   # 14x14x32
         )
-        self.dense3 = Dense(256, 256, 24)   # 14x14x256
+        self.dense3 = dense(32, 24)   # 14x14x32 -> 14x14x(32*24+32)
         self.trans3 = nn.Sequential(
-            nn.Conv2d(256, 512, 1, 1, 0),   # 14x14x256 -> 14x14x512
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.AvgPool2d(2, 2, 0)   # 14x14x512 -> 7x7x512
+            nn.Conv2d(32*24+32, 32, 1, 1, 0),   # 14x14x(32*24+32) -> 14x14x32
+            nn.AvgPool2d(2, 2)   # 7x7x32
         )
-        self.dense4 = Dense(512, 512, 16)   # 7x7x512
-        self.gap = nn.AvgPool2d(7, 1, 0)   # 7x7x512 -> 1x1x512
-        self.linear = nn.Linear(512, 10)   # 10 is the number of classes
+        self.dense4 = dense(32, 16)   # 7x7x32 -> 7x7x(32*16+32)
+        self.gap = nn.AvgPool2d(7, 1, 0)   # 7x7x(32*16+32) -> 1x1x(32*16+32)
+        self.linear = nn.Linear(32*16+32, 10)
 
     def forward(self, x):
         x = self.conv(x)
@@ -88,7 +83,7 @@ class DenseNet(nn.Module):
         x = self.trans3(x)
         x = self.dense4(x)
         x = self.gap(x)
-        x = x.view(-1, 512)
+        x = x.view(-1, 32*16+32)
         x = self.linear(x)
         return x
 
@@ -106,13 +101,13 @@ def main():
     # print(train_dataset.data.shape)   # 60000x28x28
 
     # define Net
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    net = ResNet18().to(device)
+    # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    net = DenseNet().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
 
     # train
-    bestNet = ResNet18().to(device)
+    bestNet = DenseNet().to(device)
     bestAcc = 0
     losses = []
     for epoch in range(20):

@@ -78,9 +78,9 @@ class LeNet(nn.Module):
     def __init__(self):
         super(LeNet, self).__init__()
         self.conv1    = nn.Conv2d(1, 6, 5, stride=1, padding=2)
+        self.conv2    = nn.Conv2d(6, 16, 5)
         self.sigmoid  = nn.Sigmoid()
         self.avePool1 = nn.AvgPool2d(2, stride=2)
-        self.conv2    = nn.Conv2d(6, 16, 5)
         self.avePool2 = nn.AvgPool2d(2, stride=2)
         self.flatten  = nn.Flatten()
         self.fc1      = nn.Linear(5 * 5 * 16, 120)
@@ -95,6 +95,40 @@ class LeNet(nn.Module):
         x = self.sigmoid(x)
         x = self.avePool1(x)
         x = self.conv2(x)
+        x = self.sigmoid(x)
+        x = self.avePool2(x)
+        x = self.flatten(x)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+
+        return x
+
+class LeNet_BN(nn.Module):
+    def __init__(self):
+        super(LeNet_BN, self).__init__()
+        self.conv1    = nn.Conv2d(1, 6, 5, stride=1, padding=2)
+        self.conv2    = nn.Conv2d(6, 16, 5)
+        self.bn1      = nn.BatchNorm2d(6, eps=1e-05, momentum=0.9)
+        self.bn2      = nn.BatchNorm2d(16, eps=1e-05, momentum=0.9)
+        self.sigmoid  = nn.Sigmoid()
+        self.avePool1 = nn.AvgPool2d(2, stride=2)
+        self.avePool2 = nn.AvgPool2d(2, stride=2)
+        self.flatten  = nn.Flatten()
+        self.fc1      = nn.Linear(5 * 5 * 16, 120)
+        self.fc2      = nn.Linear(120, 84)
+        self.fc3      = nn.Linear(84, 10)
+    
+    def weight_init(self, mu=0, sigma=1.0):
+        nn.init.normal_(self.weight, mu, sigma)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.sigmoid(x)
+        x = self.avePool1(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
         x = self.sigmoid(x)
         x = self.avePool2(x)
         x = self.flatten(x)
@@ -207,4 +241,83 @@ class VGG11(nn.Module):
         x = self.dropout(x)
         x = self.fc3(x)
 
+        return x
+
+class NiN_Blocks(nn.Module):
+    def __init__(self):
+        super(NiN_Blocks, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 192, 5, stride=1, padding=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(192, 160, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(160, 96, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(96),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            nn.Dropout(inplace=True),
+
+            nn.Conv2d(96, 192, 5, stride=1, padding=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(192, 192, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(192, 192, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(192),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            nn.Dropout(inplace=True),
+
+            nn.Conv2d(192, 192, 3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(192, 192, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(192, 10, 1, stride=1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(10)
+        )
+    
+    def weight_init(self, mu=0, sigma=1.0):
+        nn.init.normal_(self.weight, mu, sigma)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = nn.functional.avg_pool2d(x, 7, stride=1, padding=0)
+        x = x.view(x.size(0), 10)
+        return x
+
+class _NiN_Blocks(nn.Module):
+    def __init__(self):
+        super(NiN_Blocks, self).__init__()
+        self.features = nn.Sequential(
+            self.nin_block(1,96,  kernel_size=11, stride=4, padding=0),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            self.nin_block(96,256,  kernel_size=5, stride=1, padding=2),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            self.nin_block(256,384,  kernel_size=3, stride=1, padding=1),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.Dropout(inplace=True),
+            self.nin_block(384, 10, kernel_size=3, stride=1, padding=1),
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten()
+        )
+
+    # コピペはいいけど，selfは忘れない！
+    def nin_block(self, in_channels, out_channels, kernel_size, stride, padding):
+        blk = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
+            nn.ReLU(inplace=True),
+        
+            nn.Conv2d(out_channels, out_channels, 1, 1, 1),
+            nn.ReLU(inplace=True),
+        
+            nn.Conv2d(out_channels, out_channels, 1, 1, 1),
+            nn.ReLU(inplace=True)
+            )
+        return blk
+    
+    def weight_init(self, mu=0, sigma=1.0):
+        nn.init.normal_(self.weight, mu, sigma)
+
+    def forward(self, x):
+        x = self.features(x)
         return x
