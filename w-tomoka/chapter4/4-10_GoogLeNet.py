@@ -8,7 +8,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 #dataset
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 transform = transforms.Compose([transforms.Resize((224, 224)), 
                                 transforms.ToTensor()])
 #60,000
@@ -34,120 +34,68 @@ data_loader_test = torch.utils.data.DataLoader(
     shuffle=False)
 
 
-#GoogLeNet
-class Inception(nn.Module):
-  def __init__(self, input_channels, n1x1, n3x3_reduce, n3x3, n5x5_reduce, n5x5, pool_proj):
-    super(Inception, self).__init__()
+#Network in Network
+class NiN_Net(nn.Module):
+  def __init__(self, input_size=3, num_classes=10):
+    super(NiN_Net, self).__init__()
+    self.num_classes = num_classes
 
-    #1x1conv branch
-    self.b1 = nn.Sequential(
-        nn.Conv2d(input_channels, n1x1, kernel_size=1),
-        nn.BatchNorm2d(n1x1),
-        nn.ReLU(inplace=True)
-    )
+    self.conv11 = nn.Conv2d(input_size, 192,  kernel_size=5, stride=1, padding=2)
+    self.conv12 = nn.Conv2d(192, 160, kernel_size=1, stride=1, padding=0)
+    self.conv13 = nn.Conv2d(160, 96, kernel_size=1, stride=1, padding=0)
 
-    #1x1conv -> 3x3conv branch
-    self.b2 = nn.Sequential(
-        nn.Conv2d(input_channels, n3x3_reduce, kernel_size=1),
-        nn.BatchNorm2d(n3x3_reduce),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(n3x3_reduce, n3x3, kernel_size=3, padding=1),
-        nn.BatchNorm2d(n3x3),
-        nn.ReLU(inplace=True)
-    )
+    self.bn1 = nn.BatchNorm2d(96)
 
-    #1x1conv -> 5x5conv branch
-    self.b3 = nn.Sequential(
-        nn.Conv2d(input_channels, n5x5_reduce, kernel_size=1),
-        nn.BatchNorm2d(n5x5_reduce),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(n5x5_reduce, n5x5, kernel_size=3, padding=1),
-        nn.BatchNorm2d(n5x5, n5x5),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(n5x5, n5x5, kernel_size=3, padding=1),
-        nn.BatchNorm2d(n5x5),
-        nn.ReLU(inplace=True)   
-    )
+    self.dropout1 = nn.Dropout2d(0.5)
 
-    #3x3pooling -> 1x1conv
-    self.b4 = nn.Sequential(
-        nn.MaxPool2d(3, stride=1, padding=1),
-        nn.Conv2d(input_channels, pool_proj, kernel_size=1),
-        nn.BatchNorm2d(pool_proj),
-        nn.ReLU(inplace=True)
-    )
+    self.conv21 = nn.Conv2d(96, 192, kernel_size=5, stride=1, padding=2)
+    self.conv22 = nn.Conv2d(192, 192, kernel_size=1, stride=1, padding=0)
+    self.conv23 = nn.Conv2d(192, 192, kernel_size=1, stride=1, padding=0)
+
+    self.bn2 = nn.BatchNorm2d(192)
+
+    self.dropout2 = nn.Dropout2d(0.5)
+
+    self.conv31 = nn.Conv2d(192, 192, kernel_size=3, stride=1, padding=1)
+    self.conv32 = nn.Conv2d(192, 192, kernel_size=1, stride=1, padding=0)
+    self.conv33 = nn.Conv2d(192, num_classes, kernel_size=1, stride=1, padding=0)
+
+    self.bn3 = nn.BatchNorm2d(num_classes)
+
+    #self.fc = nn.Linear(10, num_classes)
 
   def forward(self, x):
-    return torch.cat([self.b1(x), self.b2(x), self.b3(x), self.b4(x)], dim=1)
+    x = F.relu(self.conv11(x))
+    x = F.relu(self.conv12(x))
+    x = F.relu(self.conv13(x))
 
+    x = F.max_pool2d(self.bn1(x), 3, stride=2, padding=1)
+    x = self.dropout1(x)
 
-class GoogLeNet(nn.Module):
-  def __init__(self, input_size=3, num_classes=100):
-    super(GoogLeNet, self).__init__()
-    self.prelayer = nn.Sequential(
-        nn.Conv2d(input_size, 64, kernel_size=3, padding=1, bias=False),
-        nn.BatchNorm2d(64),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(64, 64, kernel_size=3, padding=1, bias=False),
-        nn.BatchNorm2d(64),
-        nn.ReLU(inplace=True),
-        nn.Conv2d(64, 192, kernel_size=3, padding=1, bias=False),
-        nn.BatchNorm2d(192),
-        nn.ReLU(inplace=True),
-        )
-    
-    self.a3 = Inception(192, 64, 96, 128, 16, 32, 32)
-    self.b3 = Inception(256, 128, 128, 192, 32, 96, 64)
+    x = F.relu(self.conv21(x))
+    x = F.relu(self.conv22(x))
+    x = F.relu(self.conv23(x))
 
-    self.maxpool = nn.MaxPool2d(3, stride=2, padding=1)
+    x = F.avg_pool2d(self.bn2(x), 3, stride=2, padding=1)
+    x = self.dropout2(x)
 
-    self.a4 = Inception(480, 192, 96, 208, 16, 48, 64)
-    self.b4 = Inception(512, 160, 112, 224, 24, 64, 64)
-    self.c4 = Inception(512, 128, 128, 256, 24, 64, 64)
-    self.d4 = Inception(512, 112, 144, 288, 32, 64, 64)
-    self.e4 = Inception(528, 256, 160, 320, 32, 128, 128)
- 
-    self.a5 = Inception(832, 256, 160, 320, 32, 128, 128)
-    self.b5 = Inception(832, 384, 192, 384, 48, 128, 128)
- 
-    #input feature size: 8*8*1024
-    self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-    self.dropout = nn.Dropout2d(p=0.4)
-    self.linear = nn.Linear(1024, num_classes)
+    x = F.relu(self.conv31(x))
+    x = F.relu(self.conv32(x))
+    x = F.relu(self.conv33(x))
 
-  def forward(self, x):
-    x = self.prelayer(x)
-    x = self.maxpool(x)
-    x = self.a3(x)
-    x = self.b3(x)
-
-    x = self.maxpool(x)
- 
-    x = self.a4(x)
-    x = self.b4(x)
-    x = self.c4(x)
-    x = self.d4(x)
-    x = self.e4(x)
- 
-    x = self.maxpool(x)
- 
-    x = self.a5(x)
-    x = self.b5(x)
- 
-    x = self.avgpool(x)
-    x = self.dropout(x)
-    x = x.view(x.size()[0], -1)
-    x = self.linear(x)
-
+    x = self.bn3(x)
+    x = F.avg_pool2d(x, kernel_size=56, stride=1, padding=0)
+    x = x.view(x.size(0), -1)
+    #x = F.avg_pool2d(self.bn3(x), 8, stride=1, padding=0)
+    #x = x.view(x.size(0), self.num_classes)
     return x
-
 
 
 #学習
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
 
-net = ResNet18(input_size=1, num_classes=10)
+net = NiN_Net(input_size=1, num_classes=10)
 net = net.to(device)
 
 optimizer = optim.SGD(net.parameters(), lr=0.1)
@@ -208,13 +156,4 @@ ax[1].plot(train_accs, label='train acc')
 ax[1].plot(test_accs, label='test acc')
 ax[1].legend()
 plt.show()
-
-plt.plot(train_losses, label='train loss')
-plt.plot(test_losses, label='test loss')
-plt.legend()
-plt.show()
-
-plt.plot(train_accs, label='train acc')
-plt.plot(test_accs, label='test acc')
-plt.legend()
-plt.show()
+plt.savefig('/home/wtomoka/rinko/figure.jpg')
