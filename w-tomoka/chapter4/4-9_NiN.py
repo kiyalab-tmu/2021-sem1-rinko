@@ -8,7 +8,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 #dataset
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 transform = transforms.Compose([transforms.Resize((224, 224)), 
                                 transforms.ToTensor()])
 #60,000
@@ -34,9 +34,12 @@ data_loader_test = torch.utils.data.DataLoader(
     shuffle=False)
 
 
+#Network in Network
 class NiN_Net(nn.Module):
   def __init__(self, input_size=3, num_classes=10):
     super(NiN_Net, self).__init__()
+    self.num_classes = num_classes
+
     self.conv11 = nn.Conv2d(input_size, 192,  kernel_size=5, stride=1, padding=2)
     self.conv12 = nn.Conv2d(192, 160, kernel_size=1, stride=1, padding=0)
     self.conv13 = nn.Conv2d(160, 96, kernel_size=1, stride=1, padding=0)
@@ -59,6 +62,8 @@ class NiN_Net(nn.Module):
 
     self.bn3 = nn.BatchNorm2d(num_classes)
 
+    #self.fc = nn.Linear(10, num_classes)
+
   def forward(self, x):
     x = F.relu(self.conv11(x))
     x = F.relu(self.conv12(x))
@@ -78,16 +83,19 @@ class NiN_Net(nn.Module):
     x = F.relu(self.conv32(x))
     x = F.relu(self.conv33(x))
 
-    x = F.avg_pool2d(self.bn3(x), 8, stride=1, padding=0)
+    x = self.bn3(x)
+    x = F.avg_pool2d(x, kernel_size=56, stride=1, padding=0)
+    x = x.view(x.size(0), -1)
+    #x = F.avg_pool2d(self.bn3(x), 8, stride=1, padding=0)
+    #x = x.view(x.size(0), self.num_classes)
+    return x
 
-    return x.view(x.size(0), num_classes)
-  
-  
-  #学習
+
+#学習
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(device)
 
-net = ResNet18(input_size=1, num_classes=10)
+net = NiN_Net(input_size=1, num_classes=10)
 net = net.to(device)
 
 optimizer = optim.SGD(net.parameters(), lr=0.1)
@@ -148,13 +156,5 @@ ax[1].plot(train_accs, label='train acc')
 ax[1].plot(test_accs, label='test acc')
 ax[1].legend()
 plt.show()
+plt.savefig('/home/wtomoka/rinko/figure.jpg')
 
-plt.plot(train_losses, label='train loss')
-plt.plot(test_losses, label='test loss')
-plt.legend()
-plt.show()
-
-plt.plot(train_accs, label='train acc')
-plt.plot(test_accs, label='test acc')
-plt.legend()
-plt.show()
