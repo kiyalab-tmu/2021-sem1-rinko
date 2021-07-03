@@ -7,8 +7,11 @@ import cv2
 import numpy as np
 from math import floor
 
+# def apply_threshold(value, bitdepth):
+#     return floor(floor(value / 2**(8 - bitdepth)) / (2**bitdepth - 1) * 255)
+
 def apply_threshold(value, bitdepth):
-    return floor(floor(value / 2**(8 - bitdepth)) / (2**bitdepth - 1) * 255)
+    return floor(value/2**(8-bitdepth))*floor(255/(2**bitdepth-1))
 
 def minmax(v):
   if v > 255:
@@ -27,7 +30,7 @@ def Floyd_Steinberg(imgs, out_color):
             for w in range(W):
                 old = result_img[h, w, c]
                 # new = (old // th) * th + th // 2
-                new = apply_threshold(old, 2)
+                new = apply_threshold(old, 1)
                 result_img[h, w, c] = new
                 error = old - new
 
