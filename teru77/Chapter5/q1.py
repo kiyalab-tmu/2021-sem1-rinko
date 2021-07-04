@@ -20,10 +20,10 @@ def Create_a_word_vocabulary():
     #listになるのでdictに戻す
     vocabulary.clear()
     vocabulary.update(list)
-    
     #頻度が高い物から順にインデックスをつけていく
     for i,key in enumerate(vocabulary.keys()):
         vocabulary[key] = i
+    print(vocabulary)
     return vocabulary
 
 #インデックスに変換
@@ -85,13 +85,13 @@ def Create_a_charactor_vocabulary():
     #頻度が高い物から順にインデックスをつけていく
     for i,key in enumerate(vocabulary.keys()):
         vocabulary[key] = i
+
     return vocabulary
 
 #インデックスに変換
 def  Convert_charactor_to_index():
     
     vocabulary = Create_a_charactor_vocabulary()
-    
     f = open('time_machine.txt','r',encoding='UTF-8')
     lines = f.readlines()
     
@@ -116,10 +116,9 @@ def  Convert_charactor_to_index():
         char = []
     return sentences
         
-"""
+
 if __name__ == '__main__':
     word_dataset = Convert_word_to_index()
     print(word_dataset[0])
     char_dataset = Convert_charactor_to_index()
     print(char_dataset[0])
-"""

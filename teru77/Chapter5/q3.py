@@ -7,32 +7,42 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import q2 
 
+partition=30
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 #define datasets
-train_dataset = q2.TMDataset()
-train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True)
-test_dataset = q2.TMDataset(train=False)
-test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=True)
+train_dataset = q2.TMDataset(partition=partition)
+train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_dataset = q2.TMDataset(train=False,partition=partition)
+test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=True)
 
 #define a model
-class RNN(torch.nn.Module):
-    def __init__(self, input_size, hidden_size,output_size):
-        super().__init__()
-        self.rnn = torch.nn.RNN(input_size, hidden_size)
-        self.fc = torch.nn.Linear(hidden_size, output_size)
-    def forward(self, x):
-        output, h = self.rnn(x)
-        output = F.relu(output)
-        output = self.fc(output[:, -1])
-        return output, h
+class RNN(nn.Module):
+    def __init__(self, n_input, n_hidden, n_vocab):
+        super(RNN, self).__init__()
+        self.embedding = nn.Embedding(n_vocab, n_hidden, padding_idx=0)
+        self.drop1 = nn.Dropout(0.5)
+        self.rnn = nn.RNN(n_hidden, n_hidden, num_layers=1, batch_first=True)
+        self.out = nn.Linear(n_hidden, n_vocab)
+
+    def forward(self, x, h=None):
+        output = self.embedding(x)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output = self.out(output)
+        output = output[:, -1]
+        return output
     
-model = RNN(30,37,37).to(device)
+model = RNN(partition,256,37).to(device)
 model.train()
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001,)
-
+optimizer = torch.optim.SGD(model.parameters(), lr=0.005)
+#optimizer = torch.optim.Adam(model.parameters(), lr=1)
 epochs = 100
 train_losses = []
 train_accuracies = []
@@ -54,12 +64,13 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         # get the inputs; data is a list of [X, y]
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
+        inputs = inputs.squeeze()
         # zero the parameter gradients
         optimizer.zero_grad()
         
         # forward + backward + optimize
         with torch.set_grad_enabled(True):
-            pred_y,hiddens = model(inputs.float())
+            pred_y = model(inputs.long())
             _, predicted = torch.max(pred_y, 1)
             loss=criterion(pred_y,labels)
             perplexity = torch.exp(loss)
@@ -69,14 +80,14 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         total_perplexity += perplexity.item()
         
         #acc
-        correct += torch.sum(predicted == labels.data).item()  
+        correct += (predicted == labels.data).sum().item()  
         total += labels.size(0) 
         
-    print(f"loss: {total_loss/i}")
-    train_loss = total_loss/i
+    print(f"loss: {total_loss/len(train_dataloader)}")
+    train_loss = total_loss/len(train_dataloader)
     train_losses.append(train_loss) #epochごとの平均lossを格納
-    print(f"perplexity: {total_perplexity/i}")
-    train_perplexity.append(total_perplexity/i)
+    print(f"perplexity: {total_perplexity/len(train_dataloader)}")
+    train_perplexity.append(total_perplexity/len(train_dataloader))
     train_acc = float(correct / total)
     print(f"acc: {train_acc}")
     train_accuracies.append(train_acc) #epochごとの平均accを格納
@@ -88,7 +99,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 torch.save(model.state_dict(), './model.pth')
   
 #test
-model = RNN(30,37,37)
+model = RNN(partition,256,37)
 model.load_state_dict(torch.load('./model.pth'))    
 model = model.to(device)
 model.eval()  
@@ -101,7 +112,8 @@ with torch.no_grad():
     for i,data in enumerate(test_dataloader,0):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        pred_y,hiddens = model(inputs.float())
+        inputs = inputs.squeeze()
+        pred_y = model(inputs.long())
         _, predicted = torch.max(pred_y, 1)
         #loss
         loss=criterion(pred_y,labels)
@@ -112,9 +124,9 @@ with torch.no_grad():
         #perplexity
         perplexity = torch.exp(loss)
         total_perplexity += perplexity.item()
-    test_loss = total_loss/i
+    test_loss = total_loss/len(test_dataloader)
     test_acc = float(correct / total)
-    test_perplexity = total_perplexity/i
+    test_perplexity = total_perplexity/len(test_dataloader)
 
 # Plot result(loss)
 plt.plot(range(1, epochs+1),train_losses,label="train")
