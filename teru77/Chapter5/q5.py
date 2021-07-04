@@ -74,12 +74,13 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         # get the inputs; data is a list of [X, y]
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
+        inputs = inputs.squeeze()
         # zero the parameter gradients
         optimizer.zero_grad()
         
         # forward + backward + optimize
         with torch.set_grad_enabled(True):
-            pred_y = model(inputs.float())
+            pred_y = model(inputs.long())
             _, predicted = torch.max(pred_y, 1)
             loss=criterion(pred_y,labels)
             perplexity = torch.exp(loss)
@@ -108,7 +109,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 torch.save(model.state_dict(), './model.pth')
   
 #test
-model = LSTM(partition,37)
+model = LSTM(partition,256,37)
 model.load_state_dict(torch.load('./model.pth'))    
 model = model.to(device)
 model.eval()  
@@ -121,7 +122,8 @@ with torch.no_grad():
     for i,data in enumerate(test_dataloader,0):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        pred_y = model(inputs.float())
+        inputs = inputs.squeeze()
+        pred_y = model(inputs.long())
         _, predicted = torch.max(pred_y, 1)
         #loss
         loss=criterion(pred_y,labels)
