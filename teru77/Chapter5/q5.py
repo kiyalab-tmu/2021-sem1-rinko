@@ -29,7 +29,26 @@ class LSTM(nn.Module):
         y_rnn, (h,c) = self.rnn(x, None)
         y = self.fc(y_rnn[:, -1, :])
         return y
-model = LSTM(partition,37).to(device)
+class LSTM(nn.Module):
+    def __init__(self, n_input, n_hidden, n_vocab):
+        super(LSTM, self).__init__()
+        self.embedding = nn.Embedding(n_vocab, n_hidden, padding_idx=0)
+        self.drop1 = nn.Dropout(0.5)
+        self.rnn = nn.LSTM(n_hidden, n_hidden, num_layers=1, batch_first=True)
+        self.out = nn.Linear(n_hidden, n_vocab)
+
+    def forward(self, x, h=None):
+        output = self.embedding(x)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output = self.out(output)
+        output = output[:, -1]
+        return output
+    
+model = LSTM(partition,256,37).to(device)
 model.train()
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.0005)

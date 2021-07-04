@@ -20,20 +20,24 @@ test_dataloader = DataLoader(test_dataset, batch_size=128, shuffle=True)
 
 #define a model
 class GRU(nn.Module):
-    def __init__(self,input_size,output_size):
-        super().__init__()
-        # GRU層にはinput_sizeにはimg_size、hidden_sizeはハイパーパラメータ、batch_firstは(batch_size, seq_length, input_size)を受け付けたいのでTrueにする
-        self.hidden_size = 32
-        self.rnn = nn.GRU(input_size=input_size, hidden_size=self.hidden_size, batch_first=True)
-        # 全結合層のinputはGRU層のoutput(batch_size, seq_length, hidden_size)と合わせる。outputはimg_size
-        self.fc = nn.Linear(self.hidden_size, output_size)
-    def forward(self, x):
-        # y_rnnは(batch_size, seq_length, hidden_size)となる。LSTMと違ってcellはない。
-        y_rnn, h = self.rnn(x, None)
-        # yにはy_rnnのseq_length方向の最後の値を入れる
-        y = self.fc(y_rnn[:, -1, :])
-        return y
-model = GRU(partition,37).to(device)
+    def __init__(self, n_input, n_hidden, n_vocab):
+        super(GRU, self).__init__()
+        self.embedding = nn.Embedding(n_vocab, n_hidden, padding_idx=0)
+        self.drop1 = nn.Dropout(0.5)
+        self.rnn = nn.GRU(n_hidden, n_hidden, num_layers=1, batch_first=True)
+        self.out = nn.Linear(n_hidden, n_vocab)
+
+    def forward(self, x, h=None):
+        output = self.embedding(x)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output, hp = self.rnn(output, h)
+        output = self.drop1(output)
+        output = self.out(output)
+        output = output[:, -1]
+        return output
+model = GRU(partition,256,37).to(device)
 model.train()
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.0005)
