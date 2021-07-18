@@ -91,3 +91,29 @@ for epoch in range(epochs):
     train_losses.append(train_loss)
     
     print('Epoch: {}, Loss: {:.3f}'.format(epoch+1,train_loss))
+
+#plot(loss)
+plt.plot(range(1, epochs+1),train_losses,label="train")
+plt.title('Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig('./q1_loss.png')
+plt.close()  
+
+# dataloaderからのデータ取り出し
+x, _ = next(iter(test_dataloader))
+x = x.to(device)
+
+# 評価モードへの切替
+model.eval()
+# 復元画像
+x_rec = model(x)
+
+# 入力画像、復元画像の表示
+for i, image in enumerate([x, x_rec]):
+    image = image.view(28, 28).detach().cpu().numpy()
+    plt.subplot(1, 2, i+1)
+    plt.imshow(image, cmap='binary_r')
+    plt.axis('off')
+plt.savefig("./Q1.png")
