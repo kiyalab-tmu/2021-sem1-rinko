@@ -10,47 +10,13 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 
 from dataset import TimeMachineData, TimeMachineDataset
+from model import GRU, RNN, LSTM
 
 
 def worker_init_fn(worker_id):
     random.seed(worker_id)
-
-
-class RNN(nn.Module):
-    def __init__(self, vocab_size, emb_dim=128, hidden_dim=128, nlayers=2):
-        super(RNN, self).__init__()
-        self.emb_dim = emb_dim
-        self.hidden_dim = hidden_dim
-        self.nlayers = nlayers
-
-        self.embed = nn.Embedding(vocab_size, emb_dim)
-        self.dropout1 = nn.Dropout(0.5)
-        self.rnn = nn.RNN(emb_dim, hidden_dim, nlayers)
-        self.dropout2 = nn.Dropout(0.5)
-        self.linear = nn.Linear(hidden_dim, vocab_size)
-
-        nn.init.normal_(self.embed.weight, std=0.01)
-
-        nn.init.normal_(self.rnn.weight_ih_l0, std=1 / math.sqrt(emb_dim))
-        nn.init.normal_(self.rnn.weight_hh_l0, std=1 / math.sqrt(emb_dim))
-        nn.init.zeros_(self.rnn.bias_ih_l0)
-        nn.init.zeros_(self.rnn.bias_hh_l0)
-
-    def forward(self, inputs, hidden):
-        out = self.embed(inputs)
-        out = self.dropout1(out)
-        out, hidden = self.rnn(out, hidden)
-        out = self.dropout2(out)
-        out = self.linear(out)
-
-        return out, hidden
-
-    def init_hidden(self, bsz):
-        weight = next(self.parameters()).data
-        return Variable(weight.new(self.nlayers, bsz, self.hidden_dim).zero_())
 
 
 def batchify(data, bsz):
@@ -61,9 +27,6 @@ def batchify(data, bsz):
     # Evenly divide the data across the bsz batches.
     data = data.view(bsz, -1).t().contiguous()
     return data.to(device)
-
-
-bptt = 35
 
 
 def get_batch(source, i):
@@ -83,17 +46,19 @@ def repackage_hidden(h):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model")
     parser.add_argument("--gpu", default="0")
     args = parser.parse_args()
 
     # Constants
+    bptt = 35
     TRAIN_BATCH_SIZE = 128
     TEST_BATCH_SIZE = 128
     EPOCH_NUM = 100
     CHECKPOINT_FOLDER = "./checkpoints/"
     NUM_WORKER = 2
     device = f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu"
-    save_name = f"rnn_time_machine.pth"
+    save_name = f"{args.model}_time_machine.pth"
 
     if not os.path.exists(CHECKPOINT_FOLDER):
         os.makedirs(CHECKPOINT_FOLDER)
@@ -113,7 +78,14 @@ if __name__ == "__main__":
     train_data = batchify(data[:div_idx], TRAIN_BATCH_SIZE)
     test_data = batchify(data[div_idx:], TEST_BATCH_SIZE)
 
-    model = RNN(ntokens).to(device)
+    if args.model == "rnn":
+        model = RNN(ntokens).to(device)
+    elif args.model == "gru":
+        model = GRU(ntokens).to(device)
+    elif args.model == "lstm":
+        model = LSTM(ntokens).to(device)
+    else:
+        raise ValueError("Invalid model argument: {}".format(args.model))
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=1, momentum=0.9, weight_decay=0.0005)
@@ -126,11 +98,16 @@ if __name__ == "__main__":
         total_loss = 0.0
         start_time = time.time()
         hidden = model.init_hidden(TRAIN_BATCH_SIZE)
+        if args.model == "lstm":
+            cell = model.init_hidden(TRAIN_BATCH_SIZE)
         # hidden = None
         for batch, i in enumerate(range(0, train_data.size(0) - 1, bptt)):
             data, targets = get_batch(train_data, i)
             optimizer.zero_grad()
-            output, hidden = model(data, hidden)
+            if args.model == "lstm":
+                output, hidden, cell = model(data, hidden, cell)
+            else:
+                output, hidden = model(data, hidden)
             loss = criterion(output.view(-1, ntokens), targets)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.25)
@@ -156,19 +133,28 @@ if __name__ == "__main__":
                 )
                 start_time = time.time()
             hidden = repackage_hidden(hidden)
+            if args.model == "lstm":
+                cell = repackage_hidden(cell)
         return total_loss / (batch + 1)
 
     def evaluate(model, data_source):
         model.eval()  # Turn on the evaluation mode
         total_loss = 0.0
         hidden = model.init_hidden(TEST_BATCH_SIZE)
+        if args.model == "lstm":
+            cell = model.init_hidden(TRAIN_BATCH_SIZE)
         with torch.no_grad():
             for i in range(0, data_source.size(0) - 1, bptt):
                 data, targets = get_batch(data_source, i)
-                output, hidden = model(data, hidden)
+                if args.model == "lstm":
+                    output, hidden, cell = model(data, hidden, cell)
+                else:
+                    output, hidden = model(data, hidden)
                 output_flat = output.view(-1, ntokens)
                 total_loss += len(data) * criterion(output_flat, targets).item()
                 hidden = repackage_hidden(hidden)
+                if args.model == "lstm":
+                    cell = repackage_hidden(cell)
         return total_loss / (len(data_source) - 1)
 
     best_val_loss = float("inf")
@@ -194,7 +180,7 @@ if __name__ == "__main__":
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = model
-        torch.save(model.state_dict(), "rnn_thetimemachine.pth")
+        torch.save(model.state_dict(), f"{args.model}_thetimemachine.pth")
 
         scheduler.step()
 
@@ -203,4 +189,4 @@ if __name__ == "__main__":
     plt.legend()
     plt.xlabel("epoch")
     plt.ylabel("perplexity")
-    plt.savefig("rnn_thetimemachine_perplexity.png")
+    plt.savefig(f"{args.model}_thetimemachine_perplexity.png")
