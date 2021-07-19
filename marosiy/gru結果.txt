@@ -1,0 +1,22 @@
+1327/1327 - 87s - loss: 0.9879 - acc: 0.6922 - val_loss: 2.2190 - val_acc: 0.4534
+Epoch 47/50
+1327/1327 - 87s - loss: 0.9898 - acc: 0.6923 - val_loss: 2.2271 - val_acc: 0.4493
+Epoch 48/50
+1327/1327 - 87s - loss: 0.9949 - acc: 0.6891 - val_loss: 2.2147 - val_acc: 0.4558
+Epoch 49/50
+1327/1327 - 87s - loss: 0.9677 - acc: 0.6976 - val_loss: 2.2476 - val_acc: 0.4568
+Epoch 50/50
+1327/1327 - 87s - loss: 0.9682 - acc: 0.6960 - val_loss: 2.2336 - val_acc: 0.4564
+loss: 0.9682288765907288
+val_loss: 2.2335612773895264
+acc: 0.6960127949714661
+val_acc: 0.45636191964149475
+2021-07-05 11:40:54.966554: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+The Project Gutenberg eBook of The Time Machine, by H. G. Wells
+
+This eBook is for the use of anyone seemed and the surfred into and of the little people of the fire seemed to me very into the sere and the surfred into and of the surfes of a moment of a moment of a moment of a moment of a moment of a moment of a moment of a moment of the little people of the fire seemed to me very into the sere and the surfred into and of the surfes of a moment of a moment of a moment of a moment of a moment of
+*********************************************
+el was still painful, and
+feeling sorely begrimed. I saw the _Pall Mall Gazette_ on the table by
+the sumple of the Morlocks to the little the seally and the surfred into and of the surfes of a moment of a moment of a moment of a moment of a moment of a moment of a moment of a moment of the little people of the fire seemed to me very into the sere and the surfred into and of the surfes of a moment of a moment of a moment of a moment of a moment of a moment of a moment of a moment of the little pe
+(testGroupPhase) shiroma7@lazuli:/home/shiroma7/phase/DONTUSEexperiment3/scripts$ 
