@@ -1,0 +1,41 @@
+{
+    "proj":{
+        "name":"Fashion MNIST training NiN Block",
+        "date":"2021/06/16",
+        "comments":""
+    },
+
+    "path":{
+        "default":"./results/4-9_NiN_Block_2/exports/",
+        "dataset":"../../datasets/FashionMNIST/_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+    "dataset":{
+        "classes": [
+            "T-shirt/top",
+            "Trouser",
+            "Pullover",
+            "Dress",
+            "Coat",
+            "Sandal",
+            "Shirt",
+            "Sneaker",
+            "Bag",
+            "Ankle boot"
+        ],
+        "num_train":-1,
+        "num_valid":10000
+    },
+
+    "training":{
+        "BATCH_SIZE":128,
+        "EPOCH":50,
+        "lr":1e-1,
+        "weight_decay":1e-4,
+        "early_stopping_num": 10
+    }
+}

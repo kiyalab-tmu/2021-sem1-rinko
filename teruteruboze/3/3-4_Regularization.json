@@ -1,0 +1,40 @@
+{
+    "proj":{
+        "name":"Fashion MNIST training MLP with Regularization",
+        "date":"2021/05/24",
+        "comments":"Train:50000, Validation:10000"
+    },
+
+    "path":{
+        "default":"./results/3-4_Regularization_B256E100/exports/",
+        "dataset":"./_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+    "dataset":{
+        "classes": [
+            "T-shirt/top",
+            "Trouser",
+            "Pullover",
+            "Dress",
+            "Coat",
+            "Sandal",
+            "Shirt",
+            "Sneaker",
+            "Bag",
+            "Ankle boot"
+        ],
+        "num_valid":10000
+    },
+
+    "training":{
+        "BATCH_SIZE":256,
+        "EPOCH":100,
+        "lr":1e-2,
+        "weight_decay":1e-4,
+        "early_stopping_num": 6
+    }
+}

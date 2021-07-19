@@ -1,0 +1,22 @@
+{
+    "proj":{
+        "name":"Fashion MNIST training",
+        "date":"2021/05/13",
+        "comments":""
+    },
+
+    "path":{
+        "default":"./3-2_Softmax_Regression_epoch20/exports/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+
+    "training":{
+        "BATCH_SIZE":64,
+        "EPOCH":20,
+        "lr":1e-3
+    }
+}

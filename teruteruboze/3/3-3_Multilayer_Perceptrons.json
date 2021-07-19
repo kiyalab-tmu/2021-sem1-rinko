@@ -1,0 +1,38 @@
+{
+    "proj":{
+        "name":"Fashion MNIST training MLP",
+        "date":"2021/05/24",
+        "comments":"both weight and bias are init"
+    },
+
+    "path":{
+        "default":"./results/3-3_Multilayer_Perceptrons_B256E100_4/exports/",
+        "dataset":"./_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+
+    "dataset":{
+        "classes": [
+            "T-shirt/top",
+            "Trouser",
+            "Pullover",
+            "Dress",
+            "Coat",
+            "Sandal",
+            "Shirt",
+            "Sneaker",
+            "Bag",
+            "Ankle boot"
+        ]
+    },
+
+    "training":{
+        "BATCH_SIZE":256,
+        "EPOCH":100,
+        "lr":1e-2
+    }
+}

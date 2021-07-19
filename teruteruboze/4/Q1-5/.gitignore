@@ -1,0 +1,12 @@
+*.pptx
+*.png
+*.m
+*.pdf
+.vscode/
+results/
+_dataset_/
+backup/
+Img/
+ImgOut/
+References/
+4-5_Pooling_3ch.py

@@ -1,0 +1,19 @@
+Epoch 198/200
+1327/1327 - 12s - loss: 0.6149 - acc: 0.8030 - val_loss: 3.0626 - val_acc: 0.4227
+Epoch 199/200
+1327/1327 - 14s - loss: 0.6083 - acc: 0.8050 - val_loss: 3.0792 - val_acc: 0.4230
+Epoch 200/200
+1327/1327 - 15s - loss: 0.6071 - acc: 0.8071 - val_loss: 3.0683 - val_acc: 0.4221
+loss: 0.6071092486381531
+val_loss: 3.0682599544525146
+acc: 0.8070741891860962
+val_acc: 0.4220546782016754
+The Project Gutenberg eBook of The Time Machine, by H. G. Wells
+
+This eBook is for the use of anyoned the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned
+*********************************************
+el was still painful, and
+feeling sorely begrimed. I saw the _Pall Mall Gazette_ on the table by
+the should to the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in
+the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the shadoned in the s
+(testGroupPhase) shiroma7@lapis:/home/shiroma7/phase/DONTUSEexperiment3/scripts$ python rinko_my_lstm.py
