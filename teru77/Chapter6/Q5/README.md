@@ -15,7 +15,7 @@ logの中が0になると計算不可能となり正しく計算が行われな�
 <br> →Wasserstein lossはWasserstein距離を用いた損失関数
 ### Wasserstein距離を求めるためにKantorovich-Rubinstein dualityを利用
 <br>![スクリーンショット 2021-10-21 19 41 48](https://user-images.githubusercontent.com/64674323/138264681-26c9c815-0916-44f4-9d5d-9bd4c43bb608.png)
-### fを1-Lipschitzを満たす関数に置き換えるとlogのないJensen-Shannon divergenceのような形に変形できる
+### fを1-Lipschitzを満たす関数に置き換えるとlogのないBCE lossのような形に変形できる
 <br>![スクリーンショット 2021-10-21 19 43 48](https://user-images.githubusercontent.com/64674323/138264697-6e12d349-d443-45af-b226-a4a8f2b04b20.png)
 ### Jensen-Shannon divergenceを用いた損失関数 (BCE)
 <br>![スクリーンショット 2021-10-21 19 45 38](https://user-images.githubusercontent.com/64674323/138264730-731bc38c-5e33-4710-b9ee-41d980e47782.png)
