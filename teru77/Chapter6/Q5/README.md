@@ -1,0 +1,34 @@
+#Q.5 Wasserstein GAN (WGAN)
+
+## what is mode collapse?
+<br>学習が不十分な識別器(discreminator)に対して、生成器(generator)を最適してしまったなどで複雑な実世界のデータ分布を表すことを学ぶことができず、生成器から生成される画像がある特定のクラスに集中してしまい、データセットの多様性が失われてしまったり、新しいデータへの一般化が不十分になる現象。
+
+[From GAN to WGAN](https://arxiv.org/abs/1904.08994)
+<br>モード崩壊を防ぐ方法として生成器のエントロピーを最大化する手法などがあるみたい
+
+[Prescribed Generative Adversarial Networks (2019)](https://arxiv.org/abs/1910.04302)
+
+## Problem with BCE loss
+<br>不均衡データを対象とする分類問題にはBCE lossに重みをつけることで各クラスのサイズに応じた重要性を考慮することまではできるが、各クラスに対する識別の難易度を区別することはできない。
+
+[Focal lossを利用したBERTによる小説の段落境界推定 (2020)](https://www.jstage.jst.go.jp/article/pjsai/JSAI2020/0/JSAI2020_3D1OS22a02/_pdf/-char/ja)
+
+## Wasserstein loss
+多くのGANでは学習の指標としてJensen-Shannon divergenceが持ちいられているが、Jensen-Shannon divergenceを指標に２つの確率密度間の距離を学習で近づけていく場合、問題点として勾配消失問題が存在する。そのため、WGANではWasserstein距離を指標として用いており、最適点付近で勾配が消失してしまうのを防いでいる。
+<br> →Wasserstein lossはWasserstein距離を用いた損失関数
+<br> Wasserstein距離を用いるためにKantorovich-Rubinstein dualityを利用
+
+<br> fを1-Lipschitzを満たす関数に置き換えるとlogのないJensen-Shannon divergenceのような形に変形できる
+
+<br> Jensen-Shannon divergenceを用いた損失関数
+
+[Wasserstein GAN](https://arxiv.org/abs/1701.07875)
+
+## Conditions of Wasserstein’s critic and 1-Lipschitz continuity enforcement
+<br> 1-Lipschitz制約を適応するために、Wasserstein’s criticの重みを[-c,c]に収まるようにクリッピングを行う
+<br>→ weight clippingでは重みが二極化してしまい、勾配爆発や消失が起きてしまう問題点があった。
+
+[Wasserstein GAN](https://arxiv.org/abs/1701.07875)
+<br>Gulrajaniらによって、WGANの最適化されたCriticが生成データの分布,訓練データの分布下のほぼ全ての点において単位勾配ノルムを持つことが証明されたため、これを満たすようにペナルティ項を導入することで上記の問題を解決したWGAN-GPというものが提案されている
+
+[Improved Training of Wasserstein GANs](https://arxiv.org/pdf/1704.00028.pdf)
