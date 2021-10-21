@@ -7,17 +7,17 @@
 <br>[Prescribed Generative Adversarial Networks (2019)](https://arxiv.org/abs/1910.04302)
 
 ## Problem with BCE loss
-不均衡データを対象とする分類問題にはBCE lossに重みをつけることで各クラスのサイズに応じた重要性を考慮することまではできるが、各クラスに対する識別の難易度を区別することはできない。
-<br>[Focal lossを利用したBERTによる小説の段落境界推定 (2020)](https://www.jstage.jst.go.jp/article/pjsai/JSAI2020/0/JSAI2020_3D1OS22a02/_pdf/-char/ja)
-
+logの中が0になると計算不可能となり正しく計算が行われなくなってしまう。GANでBCE Lossを用いる場合、logの中が0になる可能性が存在するため、正しく学習が行われずに勾配消失等の問題が発生してしまう。
+<br>![スクリーンショット 2021-10-21 19 45 38](https://user-images.githubusercontent.com/64674323/138264730-731bc38c-5e33-4710-b9ee-41d980e47782.png)
+<br>[Wasserstein GAN (2017)](https://arxiv.org/abs/1701.07875)
 ## Wasserstein loss
-多くのGANでは学習の指標としてJensen-Shannon divergenceが持ちいられているが、Jensen-Shannon divergenceを指標に２つの確率密度間の距離を学習で近づけていく場合、問題点として勾配消失問題が存在する。そのため、WGANではWasserstein距離を指標として用いており、最適点付近で勾配が消失してしまうのを防いでいる。
+多くのGANでは損失関数としてJensen-Shannon divergenceを指標とした関数(BCE loss)が用いられているが、このような損失関数を利用する場合、問題点として勾配消失問題が存在する。そのため、WGANではWasserstein距離を指標として用いており、最適点付近で勾配が消失してしまうのを防いでいる。
 <br> →Wasserstein lossはWasserstein距離を用いた損失関数
 ### Wasserstein距離を求めるためにKantorovich-Rubinstein dualityを利用
 <br>![スクリーンショット 2021-10-21 19 41 48](https://user-images.githubusercontent.com/64674323/138264681-26c9c815-0916-44f4-9d5d-9bd4c43bb608.png)
 ### fを1-Lipschitzを満たす関数に置き換えるとlogのないJensen-Shannon divergenceのような形に変形できる
 <br>![スクリーンショット 2021-10-21 19 43 48](https://user-images.githubusercontent.com/64674323/138264697-6e12d349-d443-45af-b226-a4a8f2b04b20.png)
-### Jensen-Shannon divergenceを用いた損失関数
+### Jensen-Shannon divergenceを用いた損失関数 (BCE)
 <br>![スクリーンショット 2021-10-21 19 45 38](https://user-images.githubusercontent.com/64674323/138264730-731bc38c-5e33-4710-b9ee-41d980e47782.png)
 <br>[Wasserstein GAN (2017)](https://arxiv.org/abs/1701.07875)
 
