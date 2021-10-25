@@ -1,0 +1,43 @@
+{
+    "proj":{
+        "name":"MNIST training DCGAN",
+        "date":"2021/10/21",
+        "comments":""
+    },
+
+    "path":{
+        "default":"./results/6-4_DCGAN_MNIST_25epoch/exports/",
+        "dataset":"../datasets/MNIST/_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+    "dataset":{
+        "classes": [
+            "Airplane",
+            "Automobile",
+            "Bird",
+            "Cat",
+            "Deer",
+            "Dog",
+            "Frog",
+            "Horse",
+            "Ship",
+            "Truck"
+        ]
+    },
+
+    "training":{
+        "BATCH_SIZE":256,
+        "EPOCH":25,
+        "lrG":0.0002,
+        "lrD":0.0002,
+        "beta": 0.5,
+        "nCH": 1,
+        "nFEATURE": 64,
+        "nZ": 100,
+        "nGPU": 1
+    }
+}
