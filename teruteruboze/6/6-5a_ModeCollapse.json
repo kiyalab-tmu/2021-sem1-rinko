@@ -6,7 +6,7 @@
     },
 
     "path":{
-        "default":"./results/6-5_WGAN_kde/exports/",
+        "default":"./results/6-5_WGAN_kde_50epoch_lr2e-4/exports/",
         "dataset":"../datasets/CIFAR10/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
@@ -31,12 +31,12 @@
 
     "training":{
         "BATCH_SIZE":256,
-        "EPOCH":500,
+        "EPOCH":50,
         "NUM_ITER": 1000,
         "NUM_CLUSTER": 10,
         "SCALE": 2,
-        "lrG":0.00005,
-        "lrD":0.00005,
+        "lrG":0.0002,
+        "lrD":0.0002,
         "alpha": 0.99,
         "nCH": 2,
         "nZ": 256,
