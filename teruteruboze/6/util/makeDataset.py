@@ -57,6 +57,57 @@ class BasicDatasetCIFAR10:
     def add_class_label(self, labels):
         self.labels = labels
 
+class BasicDatasetMNIST:
+
+    def __init__(self, batch_size, path, transforms, isVALID=-1, isReduceTrain=-1):
+        # Download training data from open datasets.
+        training_data = datasets.MNIST(
+            root=path,
+            train=True,
+            download=True,
+            transform=transforms
+        )
+
+        # Download test data from open datasets.
+        test_data = datasets.MNIST(
+            root=path,
+            train=False,
+            download=True,
+            transform=transforms
+        )
+
+        # Create data loaders.
+        # Reduce train dataset for some reasons.
+        self.num_train = len(training_data)
+        self.num_valid = 0
+        if isReduceTrain != -1:
+            training_data, _ = torch.utils.data.random_split(training_data, 
+                               [isReduceTrain, len(training_data)-isReduceTrain])
+            self.num_train = len(training_data)
+        # for validation.
+        if isVALID != -1:
+            self.train, self.valid = torch.utils.data.random_split(training_data, 
+                                     [len(training_data)-isVALID, isVALID])
+            self.train = DataLoader(self.train, batch_size=batch_size)
+            self.valid = DataLoader(self.valid, batch_size=batch_size)
+            self.num_valid = isVALID
+        else:
+            self.train = DataLoader(training_data, batch_size=batch_size)
+        
+        self.test  = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+        
+
+    def count_test_dataset_num_class(self, test_data):
+        y_all = []
+        for _, y in test_data:
+            y_all.append(y)
+        y_count = collections.Counter(y_all)
+        self.num_per_class = y_count.most_common() #[(label_id, num), (9, 1000), (2, 1000)... (5,1000)] NOT in oder
+        self.num_class     = len(self.num_per_class) # num class
+
+    def add_class_label(self, labels):
+        self.labels = labels
+
 class BasicDataset:
 
     def __init__(self, batch_size, path, isVALID=-1, isReduceTrain=-1):

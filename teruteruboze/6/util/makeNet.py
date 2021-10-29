@@ -240,7 +240,7 @@ class DCDiscriminator_(nn.Module):
 
 # ===============================================
 
-# For CIFAR10 (32x32) images ====================
+# For CIFAR10 (64x64) images ====================
 
 class DCGeneratorV2(nn.Module):
     def __init__(self, nc, ngf=64, nz=100, ngpu=1):
@@ -420,6 +420,101 @@ class WassersteinDiscriminator_GMDC(nn.Module):
     def forward(self, input):
         output = self.net(input)
         return output
+
+# ===============================================
+
+class ConditionalDCGenerator(nn.Module):
+    def __init__(self, nc, ngf=64, nz=100, ncls=10, ngpu=1):
+        super(ConditionalDCGenerator, self).__init__()
+        self.nc   = nc
+        self.ngf  = ngf
+        self.nz   = nz
+        self.ncls = ncls
+        self.ngpu = ngpu
+        self.fc1  = nn.Linear(self.nz + self.ncls, self.nz)
+        self.main = nn.Sequential(
+            # input is Z, going into a convolution
+            nn.ConvTranspose2d(self.nz, self.ngf * 8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(self.ngf * 8),
+            nn.ReLU(True),
+            # state size. (ngf*8) x 4 x 4
+            nn.ConvTranspose2d(self.ngf * 8, self.ngf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ngf * 4),
+            nn.ReLU(True),
+            # state size. (ngf*4) x 8 x 8
+            nn.ConvTranspose2d(self.ngf * 4, self.ngf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ngf * 2),
+            nn.ReLU(True),
+            # state size. (ngf*2) x 16 x 16
+            nn.ConvTranspose2d(self.ngf * 2, self.ngf, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ngf),
+            nn.ReLU(True),
+            # state size. (ngf) x 32 x 32
+            nn.ConvTranspose2d(self.ngf, self.nc, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # state size. (nc) x 64 x 64
+        )
+
+    def forward(self, noise):
+        concat = self.fc1(noise).view(-1, self.nz, 1, 1)
+        return self.main(concat)
+
+    def make_label(self, class_labels, device):
+        batch_size = class_labels.size(0)
+        self.makenoise_like(device, batch_size)
+        z = self.fixed_noise
+        y = torch.zeros(batch_size, self.ncls).scatter_(1, class_labels.view(-1, 1), 1).to(device)
+        return torch.cat([z, y], dim=1)
+
+    def makenoise_like(self, device, size=None):
+        # Create batch of latent vectors that we will use to visualize
+        # the progression of the generator
+        if size == None:
+            size = self.ngf
+        self.fixed_noise = torch.randn(size, self.nz, device=device)
+
+class ConditionalDCDiscriminator(nn.Module):
+    def __init__(self, nc, ndf=64, ncls=10, ngpu=1):
+        super(ConditionalDCDiscriminator, self).__init__()
+        self.nc   = nc
+        self.ndf  = ndf
+        self.ncls = ncls
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            # input is (nc) x 64 x 64
+            nn.Conv2d(self.ncls + self.nc, self.ndf, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf) x 32 x 32
+            nn.Conv2d(self.ndf, self.ndf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ndf * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*2) x 16 x 16
+            nn.Conv2d(self.ndf * 2, self.ndf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ndf * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*4) x 8 x 8
+            nn.Conv2d(self.ndf * 4, self.ndf * 8, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(self.ndf * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*8) x 4 x 4
+            nn.Conv2d(self.ndf * 8, 1, 4, 1, 0, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input):
+        return self.main(input)
+
+    def make_input(self, data, class_labels, device):
+        batch_size = data.shape[0]
+        width = data.shape[2]
+        height = data.shape[3]
+
+        y = torch.zeros(batch_size, self.ncls, width * height).to(device)
+        for i, num in enumerate(class_labels):
+            y.data[i][num].fill_(1)
+        y = y.view(-1, self.ncls, width, height)
+
+        return torch.cat([data, y], dim=1)
 
 # ===============================================
 
