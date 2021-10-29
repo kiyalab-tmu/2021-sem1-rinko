@@ -41,6 +41,6 @@
         "nZ": 100,
         "nCLS": 10,
         "nGPU": 1,
-        "GenLabel":2
+        "GenLabel":-1
     }
 }
