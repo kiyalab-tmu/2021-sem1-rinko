@@ -1,0 +1,32 @@
+{
+    "proj":{
+        "name":"MNIST training Cycle GAN",
+        "date":"2021/11/12",
+        "comments":""
+    },
+
+    "path":{
+        "default":"./results/6-7_CycleGAN_50epoch/exports/",
+        "dataset":"../datasets/summer2winter/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+
+    "training":{
+        "BATCH_SIZE":4,
+        "EPOCH":50,
+        "lrG":0.0002,
+        "lrD":0.0002,
+        "beta": 0.5,
+        "inCH": 3,
+        "outCH": 3,
+        "imgSize": 256,
+        "nFEATURE": 64,
+        "nZ": 100,
+        "nGPU": 1,
+        "poolSize": 50
+    }
+}

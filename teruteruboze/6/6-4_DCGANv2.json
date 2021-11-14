@@ -1,12 +1,12 @@
 {
     "proj":{
         "name":"MNIST training DCGAN",
-        "date":"2021/10/21",
+        "date":"2021/11/01",
         "comments":""
     },
 
     "path":{
-        "default":"./results/6-4_DCGAN_MNIST_25epoch/exports/",
+        "default":"./results/6-6_DCGAN_MNIST_50epoch/exports/",
         "dataset":"../datasets/MNIST/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
@@ -31,7 +31,7 @@
 
     "training":{
         "BATCH_SIZE":256,
-        "EPOCH":25,
+        "EPOCH":50,
         "lrG":0.0002,
         "lrD":0.0002,
         "beta": 0.5,

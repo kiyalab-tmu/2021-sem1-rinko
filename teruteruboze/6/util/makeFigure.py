@@ -8,6 +8,7 @@ import torch
 import torchvision.utils as vutils
 import pylab
 import seaborn as sns
+from torchvision.utils import save_image
 
 def save(data, f_name, xlabel, ylabel, figs_path, default_path='./exports/'):
     fig1 = plt.figure()
@@ -233,3 +234,39 @@ def plot_kde(data, figs_path, default_path='./exports/', fname="kde", color="Gre
     pylab.ylim(-4, 4)
     kde.savefig("{}/{}/{}.png".format(default_path, figs_path, fname))
     pylab.show()
+
+def imshow_text(img, figs_path, default_path='./exports/', fname='firstoutput', std=1, mean=0, fig_size=[8,8], xlabel=None):
+    img = img.permute(1,2,0).cpu()
+    img = img * torch.tensor(std) + torch.tensor(mean)
+    fig, ax = plt.subplots()
+    fig.set_size_inches(*fig_size)
+    ax.imshow(img)
+    ax.set_xlabel(xlabel,fontsize=28)
+    fig.tight_layout()
+    plt.savefig(default_path + figs_path + fname)
+
+def CycleGAN_imshow(dataset, modelGenA2B, modelGenB2A, device, figs_path, default_path='./exports/', num_img=10, isNormalized=True):
+    modelGenA2B.eval()
+    modelGenB2A.eval()
+    for i, data in enumerate(dataset, 0):
+        real_A = data['A'].to(device)
+        real_B = data['B'].to(device)
+
+        with torch.no_grad():
+            if isNormalized:
+                fake_B = 0.5*(modelGenA2B(real_A).data + 1.0)
+                fake_A = 0.5*(modelGenB2A(real_B).data + 1.0)
+                real_A = 0.5*real_A + .5
+                real_B = 0.5*real_B + .5
+            else:
+                fake_B = modelGenA2B(real_A).data
+                fake_A = modelGenB2A(real_B).data
+
+            out_imgA2B = torch.cat([real_A, fake_B], dim=2)
+            out_imgB2A = torch.cat([real_B, fake_A], dim=2)
+
+            save_image(out_imgA2B, default_path + figs_path + 'A2B_%04d.jpg' % (i+1))
+            save_image(out_imgB2A, default_path + figs_path + 'B2A_%04d.png' % (i+1))
+
+        if i > num_img:
+            break

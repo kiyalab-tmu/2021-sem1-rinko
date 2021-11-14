@@ -173,6 +173,7 @@ class AlexNet(nn.Module):
         x = self.conv5(x)
         x = self.relu(x)
         x = self.maxPool3(x)
+        print(x.shape)
         x = self.flatten(x)
         x = self.fc1(x)
         x = self.relu(x)

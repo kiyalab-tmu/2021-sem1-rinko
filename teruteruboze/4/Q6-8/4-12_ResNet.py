@@ -1,8 +1,10 @@
 import json
+import shutil
 import logging
 import torch
 from torch import nn
 import torchvision.models as models
+from torchvision import transforms
 import numpy as np
 import util.makeDir as makeDir
 import util.makeDataset as makeDataset
@@ -15,18 +17,47 @@ if __name__ == '__main__':
 
     # folder creation #######################################################################
     # config file (json)
-    with open('4-12_ResNet.json') as f:
+    json_fname = '4-12_ResNet.json'
+    with open(json_fname) as f:
         config = json.load(f)
     # make necessary dir
     makeDir.do(config['path']['log'], config['path']['log_Fname'],
                config['path']['csv'], config['path']['ckpt'], 
                config['path']['fig'], config['path']['default'])
+    # copy json config file
+    shutil.copy('./'+json_fname, config['path']['default']+json_fname)
 
     # CUDA setup ###########################################################################
     device  = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # Dataset ##############################################################################
-    dataset = makeDataset.BasicDatasetTo3ch(config['training']['BATCH_SIZE'],config['path']['dataset'],config['dataset']['num_valid'])
-    dataset.add_class_label(config['dataset']['classes'])
+    try:
+        if   config['training']['nCH'] == 1:
+            transform = transforms.Compose([
+                        #transforms.Grayscale(),
+                        transforms.RandomAffine(degrees=(-7, 7)),
+                        transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
+                        transforms.Resize(64),
+                        transforms.CenterCrop(64),
+                        transforms.ToTensor(),
+                        transforms.Normalize([0.5], [0.5])
+                    ])
+        elif config['training']['nCH'] == 3:
+            transform = transforms.Compose([
+                        transforms.RandomAffine(degrees=(-7, 7)),
+                        transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
+                        transforms.Resize(64),
+                        transforms.CenterCrop(64),
+                        transforms.ToTensor(),
+                        transforms.Normalize([0.5], [0.5], [0.5])
+                        ])
+    except KeyError:
+        pass
+    dataset = makeDataset.BasicDatasetMNIST(
+        config['training']['BATCH_SIZE'],
+        config['path']['dataset'],
+        transforms=transform,
+        isVALID=config['dataset']['num_valid'])
+    #dataset.add_class_label(config['dataset']['classes'])
 
     # logger setup #########################################################################
     logging.basicConfig(filename=config['path']['default']+config['path']['log']+config['path']['log_Fname'], 
@@ -44,7 +75,12 @@ if __name__ == '__main__':
     ''')
 
     # main #################################################################################
-    model   = models.resnet18()
+    model   = models.resnet18(pretrained=False)
+    if config['training']['nCH'] == 1:
+        # to 1ch for MNIST
+        model.conv1 = nn.Conv2d(config['training']['nCH'], 64, kernel_size=7, stride=2, padding=3,bias=False)
+    # revise num_class in outlayer
+    model.fc = nn.Linear(model.fc.in_features, config['dataset']['num_class'])
     model   = model.to(device)
 
     loss_fn   = nn.CrossEntropyLoss()
@@ -91,7 +127,7 @@ if __name__ == '__main__':
 
     # save for analysis ####################################################################
     # save Figs
-    makeFigure.Fig_confusion_matrix(y_pred, y_true, dataset.labels, config['path']['fig'], config['path']['default'])
+    #makeFigure.Fig_confusion_matrix(y_pred, y_true, dataset.labels, config['path']['fig'], config['path']['default'])
     makeFigure.Fig_train_valid(train_loss, valid_loss, 'loss', config['path']['fig'], config['path']['default'])
     makeFigure.Fig_train_valid(train_acc,  valid_acc,   'acc', config['path']['fig'], config['path']['default'])
     # save CSV

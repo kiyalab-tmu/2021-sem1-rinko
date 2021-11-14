@@ -1,10 +1,104 @@
 import torch
+from torch.functional import split
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets
+from torchvision import transforms
 from torchvision.transforms import ToTensor, Compose, Resize, Grayscale, Normalize
 import collections
 import numpy as np
 import math
+import glob as gF
+from PIL import Image
+
+class Summer2WinterDataset(Dataset):
+    def __init__(self, img_path, transform=False, mode='train'):
+        self.transform = transform
+        self.domainA = self.load_imgs(img_path+mode+'A/')
+        self.domainB = self.load_imgs(img_path+mode+'B/')
+
+    def load_imgs(self, path):
+        # datatype: PILimage
+        img_list  = []
+        glob_path = gF.glob(path+'*.jpg')
+        for file_path in sorted(glob_path):
+            img  = Image.open(file_path)
+            img_list.append(img)
+        return img_list
+
+    def __len__(self):
+        return min(len(self.domainA), len(self.domainB))
+
+    def __getitem__(self, idx):
+        domainA =  self.domainA[idx]
+        domainB =  self.domainB[idx]
+
+        if self.transform:
+            domainA = self.transform(domainA)
+            domainB = self.transform(domainB)
+
+        return {'A': domainA, 'B': domainB}
+
+class BasicDatasetImage:
+
+    def __init__(self, batch_size, path, transforms):
+        # Download training data from open datasets.
+        training_data = datasets.ImageFolder(
+            root=path,
+            transform=transforms,
+        )       
+        self.train  = DataLoader(training_data, batch_size=batch_size, shuffle=True)
+
+class BasicDatasetCelebA:
+
+    def __init__(self, batch_size, path, transforms, isVALID=-1, isReduceTrain=-1):
+        # Download training data from open datasets.
+        training_data = datasets.CelebA(
+            root=path,
+            split='train',
+            download=True,
+            transform=transforms
+        )
+
+        # Download test data from open datasets.
+        test_data = datasets.CelebA(
+            root=path,
+            split='test',
+            download=True,
+            transform=transforms
+        )
+
+        # Create data loaders.
+        # Reduce train dataset for some reasons.
+        self.num_train = len(training_data)
+        self.num_valid = 0
+        if isReduceTrain != -1:
+            training_data, _ = torch.utils.data.random_split(training_data, 
+                               [isReduceTrain, len(training_data)-isReduceTrain])
+            self.num_train = len(training_data)
+        # for validation.
+        if isVALID != -1:
+            self.train, self.valid = torch.utils.data.random_split(training_data, 
+                                     [len(training_data)-isVALID, isVALID])
+            self.train = DataLoader(self.train, batch_size=batch_size)
+            self.valid = DataLoader(self.valid, batch_size=batch_size)
+            self.num_valid = isVALID
+        else:
+            self.train = DataLoader(training_data, batch_size=batch_size)
+        
+        self.test  = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+        
+
+    def count_test_dataset_num_class(self, test_data):
+        y_all = []
+        for _, y in test_data:
+            y_all.append(y)
+        y_count = collections.Counter(y_all)
+        self.num_per_class = y_count.most_common() #[(label_id, num), (9, 1000), (2, 1000)... (5,1000)] NOT in oder
+        self.num_class     = len(self.num_per_class) # num class
+
+    def add_class_label(self, labels):
+        self.labels = labels
+
 
 class BasicDatasetCIFAR10:
 

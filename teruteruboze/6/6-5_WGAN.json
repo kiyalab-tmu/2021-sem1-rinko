@@ -6,7 +6,7 @@
     },
 
     "path":{
-        "default":"./results/6-5_WGAN_MNIST_200epoch/exports/",
+        "default":"./results/6-5_WGAN_MNIST_100epoch_lr/exports/",
         "dataset":"../datasets/MNIST/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
@@ -31,15 +31,15 @@
 
     "training":{
         "BATCH_SIZE":256,
-        "EPOCH":200,
-        "lrG":0.00005,
-        "lrD":0.00005,
+        "EPOCH":100,
+        "lrG":0.0002,
+        "lrD":0.0002,
         "alpha": 0.99,
         "nCH": 1,
         "nFEATURE": 64,
         "nZ": 100,
         "nGPU": 1,
-        "nCritic": 7,
+        "nCritic": 5,
         "discriminator_clamp": [-0.01, 0.01]
     }
 }
