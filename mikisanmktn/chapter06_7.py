@@ -32,7 +32,7 @@ class ImageDataset(Dataset):
     def __len__(self):
         return max(len(self.files_A), len(self.files_B))
 
-EPOCH_NUM = 5
+EPOCH_NUM = 50
 batch_size = 1
 dataroot = '../datasets/summer2winter_yosemite/'
 lr = 0.0002
@@ -139,9 +139,9 @@ for epoch in range(EPOCH_NUM):
                 epoch, loss_G, (loss_identity_win + loss_identity_sum),
                 (loss_GAN_win2sum + loss_GAN_sum2win), (loss_cycle_winsumwin + loss_cycle_sumwinsum), (loss_D_win + loss_D_sum)
                 ))
-            torch.save(netG_win2sum.state_dict(), "checkpoints/CycleGAN_netG_win2sum.pth")
-            torch.save(netG_sum2win.state_dict(), "checkpoints/CycleGAN_netG_sum2win.pth")
-            torch.save(netD_win.state_dict(), "checkpoints/CycleGAN_netD_win.pth")
-            torch.save(netD_sum.state_dict(), "checkpoints/CycleGAN_netD_sum.pth")
+            torch.save(netG_win2sum.state_dict(), "checkpoints/CycleGAN_netG_win2sum50.pth")
+            torch.save(netG_sum2win.state_dict(), "checkpoints/CycleGAN_netG_sum2win50.pth")
+            torch.save(netD_win.state_dict(), "checkpoints/CycleGAN_netD_win50.pth")
+            torch.save(netD_sum.state_dict(), "checkpoints/CycleGAN_netD_sum50.pth")
         
 
