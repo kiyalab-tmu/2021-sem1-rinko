@@ -144,7 +144,7 @@ def calculate_kid_given_paths(paths, batch_size, cuda, dims, model_type='incepti
         model = InceptionV3([block_idx])
     elif model_type == 'lenet':
         model = LeNet5()
-        model.load_state_dict(torch.load('./models/lenet.pth'))
+        model.load_state_dict(torch.load('./models/lenet.pth'))q_08_
     if cuda:
        model.cuda()
 
