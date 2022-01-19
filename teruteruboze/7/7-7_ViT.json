@@ -1,0 +1,43 @@
+{
+    "proj":{
+        "name":"MNIST training ResNet for controllable GAN",
+        "date":"2021/11/02",
+        "comments":""
+    },
+
+    "path":{
+        "default":"./7/results/7-7_ViT_v0.2/exports/",
+        "dataset":"../datasets/CIFAR10/_dataset_/data/",
+        "log":"log/",
+        "log_Fname":"output.log",
+        "csv":"CSV/",
+        "ckpt":"checkpoint/",
+        "fig":"figures/"
+    },
+    "dataset":{
+        "num_class": 10,
+        "num_train":-1,
+        "num_valid":10000,
+        "class_name": [
+            "plane",
+            "car",
+            "bird",
+            "cat",
+            "deer",
+            "dog",
+            "frog",
+            "horse",
+            "ship",
+            "truck"
+        ]
+    },
+
+    "training":{
+        "BATCH_SIZE":128,
+        "EPOCH":200,
+        "lr":1e-2,
+        "nCH": 3,
+        "img_size": 256,
+        "early_stopping_num": 1000
+    }
+}

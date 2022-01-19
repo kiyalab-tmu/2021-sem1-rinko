@@ -1,0 +1,4 @@
+*.pptx
+*.png
+*.m
+__pycache__/
