@@ -1,12 +1,12 @@
 {
     "proj":{
-        "name":"MNIST training ResNet for controllable GAN",
-        "date":"2021/11/02",
+        "name":"ViT CIFAR10 without pre-training",
+        "date":"2022/01/19",
         "comments":""
     },
 
     "path":{
-        "default":"./7/results/7-7_ViT_v0.2/exports/",
+        "default":"./7/results/7-7_ViT_v0.3/exports/",
         "dataset":"../datasets/CIFAR10/_dataset_/data/",
         "log":"log/",
         "log_Fname":"output.log",
@@ -34,10 +34,21 @@
 
     "training":{
         "BATCH_SIZE":128,
-        "EPOCH":200,
+        "EPOCH":100,
         "lr":1e-2,
         "nCH": 3,
-        "img_size": 256,
+        "img_size": 128,
         "early_stopping_num": 1000
+    },
+
+    "ViT":{
+        "patch_size": 8,
+        "num_classes": 10,
+        "dim": 786,
+        "depth": 6,
+        "heads": 12,
+        "mlp_dim": 1024,
+        "dropout": 0.1,
+        "emb_dropout": 0.1
     }
 }
