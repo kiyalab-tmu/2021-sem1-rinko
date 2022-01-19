@@ -63,14 +63,14 @@ if __name__ == '__main__':
     # main #################################################################################
     model = ViT(
         image_size=config['training']['img_size'],
-        patch_size=16,
-        num_classes=10,
-        dim=1024,
-        depth=6,
-        heads=16,
-        mlp_dim=2048,
-        dropout=0.1,
-        emb_dropout=0.1
+        patch_size=config['ViT']['patch_size'],
+        num_classes=config['ViT']['num_classes'],
+        dim=config['ViT']['dim'],
+        depth=config['ViT']['depth'],
+        heads=config['ViT']['heads'],
+        mlp_dim=config['ViT']['mlp_dim'],
+        dropout=config['ViT']['dropout'],
+        emb_dropout=config['ViT']['emb_dropout']
         )
     model   = model.to(device)
 
